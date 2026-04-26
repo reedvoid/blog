@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} | reedvoid{% endblock %}
+{% block content %}
+<article>
+    <header class="mb-10">
+        <h1 class="text-2xl font-semibold mb-2">{{ post.title }}</h1>
+        <time class="text-gray-400 dark:text-gray-500 text-xs">{{ post.date_display }}</time>
+    </header>
+    <div class="prose font-light">
+        {{ post.html }}
+    </div>
+</article>
+{% endblock %}

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hello world (again) | reedvoid</title>
+    <link rel="icon" href="/assets/favicon/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/favicon/favicon-32x32.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="/assets/favicon/favicon-16x16.png" type="image/png" sizes="16x16">
+    <link rel="apple-touch-icon" href="/assets/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/assets/favicon/site.webmanifest">
+    <script>
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .prose h1 { @apply text-[1.6em] font-semibold mb-6 mt-10 first:mt-0; }
+            .prose h2 { @apply text-[1.25em] font-semibold mb-5 mt-10; }
+            .prose h3 { @apply text-[1.05em] font-semibold mb-4 mt-8; }
+            .prose p  { @apply mb-4 leading-relaxed; }
+            .prose a  { @apply no-underline hover:underline underline-offset-2 text-blue-600 visited:text-blue-600 dark:text-orange-400 dark:visited:text-orange-400; }
+            .prose ul { @apply list-disc list-outside ml-4 mb-4 space-y-1; }
+            .prose ol { @apply list-decimal list-outside ml-4 mb-4 space-y-1; }
+            .prose blockquote { @apply border-l-2 border-gray-200 dark:border-gray-700 pl-4 text-gray-500 dark:text-gray-400 mb-4; }
+            .prose hr  { @apply border-gray-100 dark:border-gray-800 my-8; }
+            .prose pre { @apply bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 overflow-x-auto mb-4 text-xs font-mono leading-relaxed; }
+            .prose code { @apply text-xs font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5; }
+            .prose pre code { @apply bg-transparent p-0; }
+            .prose strong { @apply font-semibold; }
+        }
+        @layer base {
+            * { box-sizing: border-box; }
+            html { scrollbar-gutter: stable; }
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 text-lg antialiased">
+
+    <!-- Mobile top bar (hidden on md+) -->
+    <header class="md:hidden fixed top-0 left-0 right-0 h-12 flex items-center justify-between px-5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-30">
+        <a href="/" class="font-mono text-xl font-bold text-gray-900 dark:text-gray-100 no-underline">reedvoid</a>
+        <button id="menu-btn" aria-label="Open menu" class="p-1 text-gray-800 dark:text-gray-300">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1">
+                <line x1="0" y1="7" x2="20" y2="7"/>
+                <line x1="0" y1="13" x2="20" y2="13"/>
+            </svg>
+        </button>
+    </header>
+
+    <!-- Backdrop (mobile only) -->
+    <div id="backdrop" class="md:hidden fixed inset-0 bg-black/20 dark:bg-black/40 z-40 hidden"></div>
+
+    <!-- Slide-in drawer (mobile only) -->
+    <div id="drawer" class="md:hidden fixed top-0 right-0 h-full w-52 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-50 translate-x-full transition-transform duration-200 ease-in-out flex flex-col">
+        <div class="h-12 flex items-center justify-end px-5 shrink-0">
+            <button id="close-btn" aria-label="Close menu" class="p-1 text-gray-800 dark:text-gray-300">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1">
+                    <line x1="3" y1="3" x2="17" y2="17"/>
+                    <line x1="17" y1="3" x2="3" y2="17"/>
+                </svg>
+            </button>
+        </div>
+        <nav class="px-7 pt-6">
+            <ul class="list-none p-0 m-0 space-y-4">
+                <li><a href="/blog/"     class="no-underline text-gray-900 dark:text-gray-100 font-medium">blog</a></li>
+                <li><a href="/projects/" class="no-underline text-gray-400 dark:text-gray-500">projects</a></li>
+                <li><a href="/about/"    class="no-underline text-gray-400 dark:text-gray-500">about</a></li>
+            </ul>
+        </nav>
+        <div class="mt-auto px-7 pb-10">
+            <button class="theme-toggle-btn text-xs transition-colors">
+                <span class="text-gray-900 dark:text-gray-500">light</span>
+                <span class="text-gray-300 dark:text-gray-600 mx-1">·</span>
+                <span class="text-gray-400 dark:text-gray-100">dark</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Centered page wrapper -->
+    <div class="max-w-4xl mx-auto flex min-h-screen">
+
+        <!-- Desktop sidebar (hidden below md) -->
+        <aside class="hidden md:block w-44 shrink-0">
+            <div class="sticky top-0 h-screen flex flex-col py-10 px-7 border-r border-gray-100 dark:border-gray-800">
+                <div class="mb-10">
+                    <a href="/" class="font-mono text-xl font-bold text-gray-900 dark:text-gray-100 no-underline">reedvoid</a>
+                </div>
+                <nav>
+                    <ul class="list-none p-0 m-0 space-y-3">
+                        <li><a href="/blog/"     class="no-underline transition-colors text-gray-900 dark:text-gray-100 font-medium">blog</a></li>
+                        <li><a href="/about/"    class="no-underline transition-colors text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">about</a></li>
+                        <li><a href="/projects/" class="no-underline transition-colors text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">projects</a></li>
+                    </ul>
+                </nav>
+                <div class="mt-auto">
+                    <button class="theme-toggle-btn text-xs transition-colors">
+                        <span class="text-gray-900 dark:text-gray-500">light</span>
+                        <span class="text-gray-300 dark:text-gray-600 mx-1">·</span>
+                        <span class="text-gray-400 dark:text-gray-100">dark</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 min-w-0 px-8 pt-20 pb-14 md:px-12 md:pt-[108px]">
+            
+<article>
+    <header class="mb-10">
+        <h1 class="text-2xl font-semibold mb-2">hello world (again)</h1>
+        <time class="text-gray-400 dark:text-gray-500 text-xs">April 24, 2026</time>
+    </header>
+    <div class="prose font-light">
+        <p>Resurrecting my personal website! </p>
+<p>I made my first website in 1994, and always had a personal website till after college when it just didn't seem that interesting or important anymore. After a while even making an extremely simple website took a ton of tinkering to get it to look &amp; feel the way I wanted it to, and it just didn't seem fun anymore. </p>
+<p>Now with AI, coding is suddenly fun again. I've been working on a lot of projects, and thought it'd be cool to resurrect the personal website I've had since I was a kid. As I write this very post, I'm feeling just as excited as I did in 1994 when I discovered Mosaic and HTML, what a time to be alive!</p>
+    </div>
+</article>
+
+        </main>
+
+    </div>
+
+    <script>
+        var drawer = document.getElementById('drawer');
+        var backdrop = document.getElementById('backdrop');
+
+        function openMenu() {
+            drawer.classList.remove('translate-x-full');
+            backdrop.classList.remove('hidden');
+        }
+
+        function closeMenu() {
+            drawer.classList.add('translate-x-full');
+            backdrop.classList.add('hidden');
+        }
+
+        function toggleTheme() {
+            var html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        document.getElementById('menu-btn').addEventListener('click', openMenu);
+        document.getElementById('close-btn').addEventListener('click', closeMenu);
+        backdrop.addEventListener('click', closeMenu);
+        document.querySelectorAll('.theme-toggle-btn').forEach(function(btn) {
+            btn.addEventListener('click', toggleTheme);
+        });
+    </script>
+
+</body>
+</html>

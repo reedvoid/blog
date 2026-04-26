@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>crypto's re-centralization | reedvoid</title>
+    <link rel="icon" href="/assets/favicon/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/favicon/favicon-32x32.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="/assets/favicon/favicon-16x16.png" type="image/png" sizes="16x16">
+    <link rel="apple-touch-icon" href="/assets/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/assets/favicon/site.webmanifest">
+    <script>
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .prose h1 { @apply text-[1.6em] font-semibold mb-6 mt-10 first:mt-0; }
+            .prose h2 { @apply text-[1.25em] font-semibold mb-5 mt-10; }
+            .prose h3 { @apply text-[1.05em] font-semibold mb-4 mt-8; }
+            .prose p  { @apply mb-4 leading-relaxed; }
+            .prose a  { @apply no-underline hover:underline underline-offset-2 text-blue-600 visited:text-blue-600 dark:text-orange-400 dark:visited:text-orange-400; }
+            .prose ul { @apply list-disc list-outside ml-4 mb-4 space-y-1; }
+            .prose ol { @apply list-decimal list-outside ml-4 mb-4 space-y-1; }
+            .prose blockquote { @apply border-l-2 border-gray-200 dark:border-gray-700 pl-4 text-gray-500 dark:text-gray-400 mb-4; }
+            .prose hr  { @apply border-gray-100 dark:border-gray-800 my-8; }
+            .prose pre { @apply bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 overflow-x-auto mb-4 text-xs font-mono leading-relaxed; }
+            .prose code { @apply text-xs font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5; }
+            .prose pre code { @apply bg-transparent p-0; }
+            .prose strong { @apply font-semibold; }
+        }
+        @layer base {
+            * { box-sizing: border-box; }
+            html { scrollbar-gutter: stable; }
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 text-lg antialiased">
+
+    <!-- Mobile top bar (hidden on md+) -->
+    <header class="md:hidden fixed top-0 left-0 right-0 h-12 flex items-center justify-between px-5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-30">
+        <a href="/" class="font-mono text-xl font-bold text-gray-900 dark:text-gray-100 no-underline">reedvoid</a>
+        <button id="menu-btn" aria-label="Open menu" class="p-1 text-gray-800 dark:text-gray-300">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1">
+                <line x1="0" y1="7" x2="20" y2="7"/>
+                <line x1="0" y1="13" x2="20" y2="13"/>
+            </svg>
+        </button>
+    </header>
+
+    <!-- Backdrop (mobile only) -->
+    <div id="backdrop" class="md:hidden fixed inset-0 bg-black/20 dark:bg-black/40 z-40 hidden"></div>
+
+    <!-- Slide-in drawer (mobile only) -->
+    <div id="drawer" class="md:hidden fixed top-0 right-0 h-full w-52 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-50 translate-x-full transition-transform duration-200 ease-in-out flex flex-col">
+        <div class="h-12 flex items-center justify-end px-5 shrink-0">
+            <button id="close-btn" aria-label="Close menu" class="p-1 text-gray-800 dark:text-gray-300">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1">
+                    <line x1="3" y1="3" x2="17" y2="17"/>
+                    <line x1="17" y1="3" x2="3" y2="17"/>
+                </svg>
+            </button>
+        </div>
+        <nav class="px-7 pt-6">
+            <ul class="list-none p-0 m-0 space-y-4">
+                <li><a href="/blog/"     class="no-underline text-gray-900 dark:text-gray-100 font-medium">blog</a></li>
+                <li><a href="/projects/" class="no-underline text-gray-400 dark:text-gray-500">projects</a></li>
+                <li><a href="/about/"    class="no-underline text-gray-400 dark:text-gray-500">about</a></li>
+            </ul>
+        </nav>
+        <div class="mt-auto px-7 pb-10">
+            <button class="theme-toggle-btn text-xs transition-colors">
+                <span class="text-gray-900 dark:text-gray-500">light</span>
+                <span class="text-gray-300 dark:text-gray-600 mx-1">·</span>
+                <span class="text-gray-400 dark:text-gray-100">dark</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Centered page wrapper -->
+    <div class="max-w-4xl mx-auto flex min-h-screen">
+
+        <!-- Desktop sidebar (hidden below md) -->
+        <aside class="hidden md:block w-44 shrink-0">
+            <div class="sticky top-0 h-screen flex flex-col py-10 px-7 border-r border-gray-100 dark:border-gray-800">
+                <div class="mb-10">
+                    <a href="/" class="font-mono text-xl font-bold text-gray-900 dark:text-gray-100 no-underline">reedvoid</a>
+                </div>
+                <nav>
+                    <ul class="list-none p-0 m-0 space-y-3">
+                        <li><a href="/blog/"     class="no-underline transition-colors text-gray-900 dark:text-gray-100 font-medium">blog</a></li>
+                        <li><a href="/about/"    class="no-underline transition-colors text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">about</a></li>
+                        <li><a href="/projects/" class="no-underline transition-colors text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">projects</a></li>
+                    </ul>
+                </nav>
+                <div class="mt-auto">
+                    <button class="theme-toggle-btn text-xs transition-colors">
+                        <span class="text-gray-900 dark:text-gray-500">light</span>
+                        <span class="text-gray-300 dark:text-gray-600 mx-1">·</span>
+                        <span class="text-gray-400 dark:text-gray-100">dark</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 min-w-0 px-8 pt-20 pb-14 md:px-12 md:pt-[108px]">
+            
+<article>
+    <header class="mb-10">
+        <h1 class="text-2xl font-semibold mb-2">crypto's re-centralization</h1>
+        <time class="text-gray-400 dark:text-gray-500 text-xs">April 26, 2026</time>
+    </header>
+    <div class="prose font-light">
+        <p>Crypto is centralizing, rapidly departing from its original cypherpunk roots of enabling a truly free &amp; decentralized future. Gone are the ideals that drove the idealistic excitement from when I first delved into the space in 2017. In retrospect, this has always been inevitable. </p>
+<p>As it stands today, crypto consists of three segments. </p>
+<ul>
+<li>Real world assets (RWA): stablecoins, on-chain equities, mainstream adoption</li>
+<li>Casinos: meme coins, prediction markets, yield farming</li>
+<li>Regulatory circumvention: fancy term for "crime"</li>
+</ul>
+<p>Let's see which one of these segments is still decentralized. </p>
+<h3>Real assets are really regulated</h3>
+<p>For years we yearned for mainstream adoption and the credibility &amp; sustainable use cases that'd tag along. Congratulations, it's here. Almost every aspect of crypto has been de-criminalized starting 2025. The SEC no longer persecutes every crypto startup, and has set up an internal committee to study rational rulemaking. All major banking regulators have removed requisite red flag warnings issued to banks when they serve any crypto company. Banks are allowed to run nodes! Even stablecoins are on the verge of gettingclear legislative definition - not a security and away from the purview of the SEC. Major wall street firms are rushing to issue crypto ETFs. FinTech is rushing to build crypto rails.</p>
+<p>But mainstream business &amp; their assets are heavily legislated, their users and operators KYC-ed, and they must absolutely comply with regulator demands. When OFAC to tell a business to freeze a few wallets and reverse a few on-chain transactions, they can't shrug it off and say "it's decentralized", they have to make it happen if they wish to stay in business and out of federal prison. Mainstream adoption means centralization by definition. </p>
+<p>Those stablecoins you're using? Circle and Tether can freeze them anytime. Those stocks you're trading on Coinbase or Robinhood? Centrally-issued derivatives. Even the stable yields you're earning from your favorite agentic yield aggregator are backed by underlying US treasury bonds can be frozen &amp; seized, risking cascading de-leveraging. Every single real world asset is centralized, and we're only going to get more of them. </p>
+<h3>No crying in the casino</h3>
+<p>Crypto has become ever-more of a speculative casino ever since the ICO boom of 2017, to the DeFi Summer of 2021, and the meme craze of 2024. These speculators aren't betting on heavily regulated real world assets issued by legitimate companies, they're betting on tokens conjured out of thin air. </p>
+<p>But even these completely unregulated, scam-ridden casinos are rapidly centralizing. The DeFi protocols they run on increasingly bend to users demands for better UI/UX, which inevitably require those users to surrender sovereignty of their assets. Insatiable demand for speed has spawned an entire class of permissioned and centralized that power these casinos.</p>
+<p>Even the vaunted Ethereum ecosystem has fallen prey to a swarm of Layer-2 networks that are just glorified single-server sequencers with zero guarantees of transaction inclusion or ordering fairness, and in many cases (the non-ZKP based L2s) can't even guarantee executional correctness. </p>
+<p>What's a degenerate gambler to do? </p>
+<h3>If you've got something to hide...</h3>
+<p>The only use case in crypto where financial interests actually depend upon true decentralization is regulatory circumvention. </p>
+<p>Criminals had always favored truly decentralized and privacy-preserving networks. Layer-1s like Monero and protocols like Tornado Cash have a long track record of being used by organized crime, ransomeware hackers, and state actors (e.g., North Korea's Lazarus Group). Consequently, they're actively tracked by law enforcement. While many attempts have been made to break such networks through technical exploits or state sanctions, none have been successful so far. </p>
+<h3>Pick your poison</h3>
+<p>In 2026 and beyond, if you want to build a legitimate crypto business that'll grow and scale, you're building products where the underlying real world assets are heavily regulated and centralized by definition. If you want to build a crypto casino or infrastructure that powers these unregulated assets, you'll be building on top of centralized networks controlled by small groups of insiders. </p>
+<p>If you are truly and stubbornly dedicated to the ideals of decentralization? You'll be building for criminals and terror states. </p>
+<p>Lovely choices.</p>
+    </div>
+</article>
+
+        </main>
+
+    </div>
+
+    <script>
+        var drawer = document.getElementById('drawer');
+        var backdrop = document.getElementById('backdrop');
+
+        function openMenu() {
+            drawer.classList.remove('translate-x-full');
+            backdrop.classList.remove('hidden');
+        }
+
+        function closeMenu() {
+            drawer.classList.add('translate-x-full');
+            backdrop.classList.add('hidden');
+        }
+
+        function toggleTheme() {
+            var html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        document.getElementById('menu-btn').addEventListener('click', openMenu);
+        document.getElementById('close-btn').addEventListener('click', closeMenu);
+        backdrop.addEventListener('click', closeMenu);
+        document.querySelectorAll('.theme-toggle-btn').forEach(function(btn) {
+            btn.addEventListener('click', toggleTheme);
+        });
+    </script>
+
+</body>
+</html>
