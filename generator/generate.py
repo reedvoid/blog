@@ -12,7 +12,7 @@ REPO_ROOT = Path(__file__).parent.parent
 PREVIEW_WORD_LIMIT = 45
 CONTENT_DIR = REPO_ROOT / "content"
 ASSETS_DIR = CONTENT_DIR / "assets"
-OUTPUT_DIR = REPO_ROOT / "published"
+OUTPUT_DIR = REPO_ROOT / "docs"
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
