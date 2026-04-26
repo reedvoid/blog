@@ -1,9 +1,6 @@
 {% extends "base.html" %}
 {% block title %}blog | reedvoid{% endblock %}
 {% block content %}
-<header class="mb-10">
-    <h1 class="text-2xl font-semibold">blog</h1>
-</header>
 {% if posts %}
 <ul class="list-none p-0 m-0 space-y-7">
     {% for post in posts %}
