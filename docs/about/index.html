@@ -14,31 +14,7 @@
             document.documentElement.classList.remove('dark');
         }
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class' }
-    </script>
-    <style type="text/tailwindcss">
-        @layer components {
-            .prose h1 { @apply text-[1.6em] font-semibold mb-6 mt-10 first:mt-0; }
-            .prose h2 { @apply text-[1.25em] font-semibold mb-5 mt-10; }
-            .prose h3 { @apply text-[1.05em] font-semibold mb-4 mt-8; }
-            .prose p  { @apply mb-4 leading-relaxed; }
-            .prose a  { @apply no-underline hover:underline underline-offset-2 text-blue-600 visited:text-blue-600 dark:text-orange-400 dark:visited:text-orange-400; }
-            .prose ul { @apply list-disc list-outside ml-4 mb-4 space-y-1; }
-            .prose ol { @apply list-decimal list-outside ml-4 mb-4 space-y-1; }
-            .prose blockquote { @apply border-l-2 border-gray-200 dark:border-gray-700 pl-4 text-gray-500 dark:text-gray-400 mb-4; }
-            .prose hr  { @apply border-gray-100 dark:border-gray-800 my-8; }
-            .prose pre { @apply bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 overflow-x-auto mb-4 text-xs font-mono leading-relaxed; }
-            .prose code { @apply text-xs font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5; }
-            .prose pre code { @apply bg-transparent p-0; }
-            .prose strong { @apply font-semibold; }
-        }
-        @layer base {
-            * { box-sizing: border-box; }
-            html { scrollbar-gutter: stable; }
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body class="bg-white dark:bg-gray-900 text-black dark:text-gray-100 text-lg antialiased">
 

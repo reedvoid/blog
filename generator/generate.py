@@ -1,5 +1,6 @@
 import re
 import shutil
+import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
@@ -9,11 +10,12 @@ import markdown
 from jinja2 import Environment, FileSystemLoader
 
 REPO_ROOT = Path(__file__).parent.parent
+GENERATOR_DIR = Path(__file__).parent
 PREVIEW_WORD_LIMIT = 45
 CONTENT_DIR = REPO_ROOT / "content"
 ASSETS_DIR = CONTENT_DIR / "assets"
 OUTPUT_DIR = REPO_ROOT / "docs"
-TEMPLATES_DIR = Path(__file__).parent / "templates"
+TEMPLATES_DIR = GENERATOR_DIR / "templates"
 
 
 def slugify(text):
@@ -149,6 +151,18 @@ def generate_blog_index(env, posts):
     (OUTPUT_DIR / 'index.html').write_text(rendered, encoding='utf-8')
 
 
+def generate_css():
+    tailwindcss = Path(sys.executable).parent / "tailwindcss"
+    input_css = GENERATOR_DIR / "input.css"
+    output_css = OUTPUT_DIR / "assets" / "styles.css"
+    (OUTPUT_DIR / "assets").mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        [str(tailwindcss), "-i", str(input_css), "-o", str(output_css), "--minify"],
+        check=True,
+        cwd=str(GENERATOR_DIR),
+    )
+
+
 def generate_section(env, section_name, front_matter, html):
     template = env.get_template('section.html')
     out_dir = OUTPUT_DIR / section_name
@@ -177,6 +191,8 @@ def main():
 
     if ASSETS_DIR.exists():
         shutil.copytree(ASSETS_DIR, OUTPUT_DIR / "assets")
+
+    generate_css()
 
     section_count = 0
     for md_file in sorted((CONTENT_DIR).glob("*.md")):
