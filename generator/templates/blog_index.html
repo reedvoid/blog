@@ -4,7 +4,7 @@
 {% if posts %}
 <ul class="list-none p-0 m-0 space-y-7">
     {% for post in posts %}
-    <li class="m-0">
+    <li>
         {% if loop.first %}
         <a href="{{ post.url }}" class="no-underline group block">
             <h2 class="text-xl m-0 text-blue-600 dark:text-orange-400 group-hover:underline underline-offset-2 mb-0.5">{{ post.title }}</h2>
