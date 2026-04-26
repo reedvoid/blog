@@ -3,6 +3,9 @@ title: projects
 section: projects
 ---
 
+Projects I worked on from latest to earliest. 
+
+
 ### upcoming...
 
 Doodling with LLMs, building prototypes in a range of fields, such as agentic overlays for legacy ERP systems, neural knowledge retention for research labs, agentic assistants for skilled tradesmen, etc. 
@@ -23,6 +26,6 @@ A post-op recovery platform that connected patients referred by doctors to certi
 A case-sharing platform that enabled physicians in China to share interesting medical case studies. 
 
 
-### LinkSens
+### LinkSens 
 
 A wireless IoT systems platform primarily used to help facilitate energy management contracts in China. 
