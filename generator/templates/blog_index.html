@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}blog | reedvoid{% endblock %}
+{% block content %}
+{% if posts %}
+<ul class="list-none p-0 m-0 space-y-7">
+    {% for post in posts %}
+    <li class="m-0">
+        {% if loop.first %}
+        <a href="{{ post.url }}" class="no-underline group block">
+            <h2 class="text-xl m-0 text-blue-600 dark:text-orange-400 group-hover:underline underline-offset-2 mb-0.5">{{ post.title }}</h2>
+            <time class="text-gray-400 dark:text-gray-500 text-xs">{{ post.date_display }}</time>
+            <p class="mt-3 text-gray-600 dark:text-gray-400 font-light leading-relaxed">{{ post.preview }}</p>
+            <span class="mt-2 inline-block text-sm text-gray-400 dark:text-gray-500 group-hover:underline underline-offset-2">Read more →</span>
+        </a>
+        {% else %}
+        <a href="{{ post.url }}" class="no-underline group block">
+            <h2 class="text-xl m-0 text-blue-600 dark:text-orange-400 group-hover:underline underline-offset-2 mb-0.5">{{ post.title }}</h2>
+            <time class="text-gray-400 dark:text-gray-500 text-xs">{{ post.date_display }}</time>
+        </a>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-gray-400 dark:text-gray-500">nothing here yet.</p>
+{% endif %}
+{% endblock %}
