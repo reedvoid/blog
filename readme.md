@@ -10,9 +10,10 @@ content/
   projects.md            # section: projects
   assets/                # static files — copied to docs/assets/ as-is
   blog/
-    YYYY-MM-DD-title.md  # section: blog   (special — see below)
+    YYYYMMDD-title.md    # section: blog   (special — see below)
 generator/
   generate.py
+  input.css
   requirements.txt
   templates/
     base.html
