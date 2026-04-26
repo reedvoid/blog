@@ -188,6 +188,10 @@ def main():
         generate_section(env, section, front_matter, html)
         section_count += 1
 
+    cname_src = REPO_ROOT / "CNAME"
+    if cname_src.exists():
+        shutil.copy(cname_src, OUTPUT_DIR / "CNAME")
+
     print(f"Done: {len(posts)} blog post(s), {section_count} section(s).")
 
 
