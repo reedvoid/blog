@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAL Player | reedvoid</title>
+    <link rel="icon" href="/assets/favicon/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/favicon/favicon-32x32.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="/assets/favicon/favicon-16x16.png" type="image/png" sizes="16x16">
+    <link rel="apple-touch-icon" href="/assets/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/assets/favicon/site.webmanifest">
+    <script>
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body class="bg-white dark:bg-gray-900 text-black dark:text-gray-100 text-lg antialiased">
+
+    <!-- Mobile top bar (hidden on md+) -->
+    <header class="md:hidden fixed top-0 left-0 right-0 h-12 flex items-center justify-between px-5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-30">
+        <a href="/" class="font-mono text-xl font-bold text-gray-900 dark:text-gray-100 no-underline">reedvoid</a>
+        <button id="menu-btn" aria-label="Open menu" class="p-1 text-gray-800 dark:text-gray-300">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1">
+                <line x1="0" y1="7" x2="20" y2="7"/>
+                <line x1="0" y1="13" x2="20" y2="13"/>
+            </svg>
+        </button>
+    </header>
+
+    <!-- Backdrop (mobile only) -->
+    <div id="backdrop" class="md:hidden fixed inset-0 bg-black/20 dark:bg-black/40 z-40 hidden"></div>
+
+    <!-- Slide-in drawer (mobile only) -->
+    <div id="drawer" class="md:hidden fixed top-0 right-0 h-full w-52 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-50 translate-x-full transition-transform duration-200 ease-in-out flex flex-col">
+        <div class="h-12 flex items-center justify-end px-5 shrink-0">
+            <button id="close-btn" aria-label="Close menu" class="p-1 text-gray-800 dark:text-gray-300">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1">
+                    <line x1="3" y1="3" x2="17" y2="17"/>
+                    <line x1="17" y1="3" x2="3" y2="17"/>
+                </svg>
+            </button>
+        </div>
+        <nav class="px-7 pt-6">
+            <ul class="list-none p-0 m-0 space-y-4">
+                
+                <li><a href="/blog/" class="no-underline text-gray-400 dark:text-gray-500">blog</a></li>
+                
+                <li><a href="/about/" class="no-underline text-gray-400 dark:text-gray-500">about</a></li>
+                
+                <li><a href="/tal-player/" class="no-underline text-gray-900 dark:text-gray-100 font-medium">tal-player</a></li>
+                
+            </ul>
+        </nav>
+        <div class="mt-auto px-7 pb-10">
+            <button class="theme-toggle-btn text-xs transition-colors">
+                <span class="text-gray-900 dark:text-gray-500">light</span>
+                <span class="text-gray-300 dark:text-gray-600 mx-1">·</span>
+                <span class="text-gray-400 dark:text-gray-100">dark</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Centered page wrapper -->
+    <div class="max-w-4xl mx-auto flex min-h-screen">
+
+        <!-- Desktop sidebar (hidden below md) -->
+        <aside class="hidden md:block w-44 shrink-0">
+            <div class="sticky top-0 h-screen flex flex-col py-10 px-7 border-r border-gray-100 dark:border-gray-800">
+                <div class="mb-10">
+                    <a href="/" class="font-mono text-xl font-bold text-gray-900 dark:text-gray-100 no-underline">reedvoid</a>
+                </div>
+                <nav>
+                    <ul class="list-none p-0 m-0 space-y-3">
+                        
+                        <li><a href="/blog/" class="no-underline transition-colors text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">blog</a></li>
+                        
+                        <li><a href="/about/" class="no-underline transition-colors text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">about</a></li>
+                        
+                        <li><a href="/tal-player/" class="no-underline transition-colors text-gray-900 dark:text-gray-100 font-medium">tal-player</a></li>
+                        
+                    </ul>
+                </nav>
+                <div class="mt-auto">
+                    <button class="theme-toggle-btn text-xs transition-colors">
+                        <span class="text-gray-900 dark:text-gray-500">light</span>
+                        <span class="text-gray-300 dark:text-gray-600 mx-1">·</span>
+                        <span class="text-gray-400 dark:text-gray-100">dark</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 min-w-0 px-8 pt-20 pb-14 md:px-12 md:pt-[108px]">
+            
+
+<div class="mb-10">
+    <h1 class="text-2xl font-semibold mb-1">this american life</h1>
+    <p class="text-sm text-gray-400 dark:text-gray-500">shuffle player</p>
+</div>
+
+<!-- Episode info -->
+<div id="episode-meta" class="mb-3 min-h-[3rem]">
+    <p id="episode-title" class="text-base font-medium text-gray-900 dark:text-gray-100"></p>
+    <p id="episode-loading" class="text-sm text-gray-400 dark:text-gray-500">loading…</p>
+</div>
+
+<!-- Player -->
+<div class="mb-8">
+    <!-- Progress bar -->
+    <!-- Tall hit area, thin visual bar centred inside it -->
+    <div id="progress-track"
+         class="relative w-full h-6 cursor-pointer mb-1 flex items-center"
+         role="slider" aria-label="Seek">
+        <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-gray-200 dark:bg-gray-700 pointer-events-none"></div>
+        <div id="progress-fill"
+             class="absolute top-1/2 left-0 -translate-y-1/2 h-px bg-gray-900 dark:bg-gray-100 pointer-events-none"
+             style="width: 0%"></div>
+        <div id="progress-thumb"
+             class="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-gray-900 dark:bg-gray-100 -ml-1 pointer-events-none"
+             style="left: 0%"></div>
+    </div>
+
+    <!-- Controls row -->
+    <div class="flex items-center gap-5">
+        <button id="prev-btn"
+                class="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                aria-label="Previous chapter">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+                <rect x="3" y="3" width="2" height="14"/>
+                <polygon points="17,3 7,10 17,17"/>
+            </svg>
+        </button>
+
+        <button id="play-btn"
+                class="text-gray-900 dark:text-gray-100 hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
+                aria-label="Play">
+            <svg id="icon-play" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <polygon points="5,3 17,10 5,17"/>
+            </svg>
+            <svg id="icon-pause" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="hidden">
+                <rect x="4" y="3" width="4" height="14"/>
+                <rect x="12" y="3" width="4" height="14"/>
+            </svg>
+        </button>
+
+        <button id="next-btn"
+                class="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                aria-label="Next chapter">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+                <polygon points="3,3 13,10 3,17"/>
+                <rect x="15" y="3" width="2" height="14"/>
+            </svg>
+        </button>
+
+        <span id="time-display" class="text-xs font-mono text-gray-400 dark:text-gray-500 tabular-nums">
+            0:00 / –:––
+        </span>
+
+        <button id="shuffle-btn"
+                class="ml-auto text-xs text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                aria-label="Shuffle to a new episode">
+            shuffle
+        </button>
+    </div>
+</div>
+
+<!-- Chapters -->
+<div id="chapters-section" class="mb-10 hidden">
+    <ul id="chapters-list" class="list-none p-0 m-0 space-y-1"></ul>
+</div>
+
+<!-- Error notice (hidden until needed) -->
+<div id="audio-error" class="hidden mb-8 text-sm text-gray-400 dark:text-gray-500">
+    <p>couldn't load audio for this episode.</p>
+    <p class="mt-1">
+        broken URL: <code id="audio-error-url" class="text-xs font-mono break-all"></code>
+    </p>
+    <p class="mt-2">
+        <button id="error-shuffle-btn" class="underline underline-offset-2">try another episode</button>
+        &ensp;or&ensp;
+        <a id="audio-error-tal-link" href="https://www.thisamericanlife.org" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">open on thisamericanlife.org ↗</a>
+    </p>
+</div>
+
+<!-- Search -->
+<div class="text-sm">
+    <a id="search-link"
+       href="https://www.thisamericanlife.org/archive"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors no-underline">
+        search on thisamericanlife.org ↗
+    </a>
+</div>
+
+<audio id="audio-el" preload="none"></audio>
+
+<script>
+(function () {
+    var audio = document.getElementById('audio-el');
+    var playBtn = document.getElementById('play-btn');
+    var prevBtn = document.getElementById('prev-btn');
+    var nextBtn = document.getElementById('next-btn');
+    var iconPlay = document.getElementById('icon-play');
+    var iconPause = document.getElementById('icon-pause');
+    var progressTrack = document.getElementById('progress-track');
+    var progressFill = document.getElementById('progress-fill');
+    var progressThumb = document.getElementById('progress-thumb');
+    var timeDisplay = document.getElementById('time-display');
+    var episodeTitle = document.getElementById('episode-title');
+    var episodeLoading = document.getElementById('episode-loading');
+    var shuffleBtn = document.getElementById('shuffle-btn');
+    var chaptersSection = document.getElementById('chapters-section');
+    var chaptersList = document.getElementById('chapters-list');
+    var audioError = document.getElementById('audio-error');
+    var audioErrorUrl = document.getElementById('audio-error-url');
+    var audioErrorTalLink = document.getElementById('audio-error-tal-link');
+    var errorShuffleBtn = document.getElementById('error-shuffle-btn');
+
+    var episodes = [];
+
+    // Session queue: episodes accumulate here as they're played.
+    // queueIndex points to the currently playing episode.
+    var queue = [];
+    var queueIndex = -1;
+
+    // When loading a new episode src, we may need to seek to a chapter
+    // timestamp once the audio is ready. Store it here until canplay fires.
+    var pendingSeek = null;
+
+    function fmt(seconds) {
+        var s = Math.floor(seconds);
+        var m = Math.floor(s / 60);
+        var h = Math.floor(m / 60);
+        s = s % 60;
+        m = m % 60;
+        var ss = s < 10 ? '0' + s : '' + s;
+        var mm = m < 10 ? '0' + m : '' + m;
+        if (h > 0) {
+            return h + ':' + mm + ':' + ss;
+        }
+        return m + ':' + ss;
+    }
+
+    function currentEpisode() {
+        if (queueIndex < 0 || queueIndex >= queue.length) {
+            return null;
+        }
+        return queue[queueIndex];
+    }
+
+    function currentChapterIndex() {
+        var ep = currentEpisode();
+        if (!ep || !ep.chapters.length) {
+            return -1;
+        }
+        var t = audio.currentTime;
+        var idx = 0;
+        for (var i = 0; i < ep.chapters.length; i++) {
+            if (ep.chapters[i].timestamp <= t) {
+                idx = i;
+            }
+        }
+        return idx;
+    }
+
+    function updateChapterHighlight() {
+        var ep = currentEpisode();
+        if (!ep || !ep.chapters.length) {
+            return;
+        }
+        var active = currentChapterIndex();
+        var items = chaptersList.querySelectorAll('li');
+        for (var i = 0; i < items.length; i++) {
+            if (i === active) {
+                items[i].classList.add('text-gray-900', 'dark:text-gray-100');
+                items[i].classList.remove('text-gray-400', 'dark:text-gray-500');
+            } else {
+                items[i].classList.remove('text-gray-900', 'dark:text-gray-100');
+                items[i].classList.add('text-gray-400', 'dark:text-gray-500');
+            }
+        }
+    }
+
+    function updateProgress() {
+        if (!audio.duration) {
+            return;
+        }
+        var pct = (audio.currentTime / audio.duration) * 100;
+        progressFill.style.width = pct + '%';
+        progressThumb.style.left = pct + '%';
+        timeDisplay.textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
+        updateChapterHighlight();
+    }
+
+    function setPlayingState(playing) {
+        if (playing) {
+            iconPlay.classList.add('hidden');
+            iconPause.classList.remove('hidden');
+        } else {
+            iconPlay.classList.remove('hidden');
+            iconPause.classList.add('hidden');
+        }
+    }
+
+    function showError(ep) {
+        audioError.classList.remove('hidden');
+        audioErrorUrl.textContent = ep.url;
+        audioErrorTalLink.href = 'https://www.thisamericanlife.org/' + ep.episode;
+    }
+
+    function hideError() {
+        audioError.classList.add('hidden');
+    }
+
+    function buildChapterList(ep) {
+        chaptersList.innerHTML = '';
+        if (!ep.chapters || ep.chapters.length <= 1) {
+            chaptersSection.classList.add('hidden');
+            return;
+        }
+        for (var i = 0; i < ep.chapters.length; i++) {
+            var ch = ep.chapters[i];
+            var li = document.createElement('li');
+            li.className = 'flex items-baseline gap-3 cursor-pointer text-sm text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors';
+
+            var nameSpan = document.createElement('span');
+            nameSpan.textContent = ch.name;
+
+            var timeSpan = document.createElement('span');
+            timeSpan.className = 'font-mono text-xs shrink-0';
+            timeSpan.textContent = fmt(ch.timestamp);
+
+            li.appendChild(nameSpan);
+            li.appendChild(timeSpan);
+
+            li.addEventListener('click', (function (timestamp) {
+                return function () {
+                    audio.currentTime = timestamp;
+                    audio.play();
+                };
+            })(ch.timestamp));
+
+            chaptersList.appendChild(li);
+        }
+        chaptersSection.classList.remove('hidden');
+        updateChapterHighlight();
+    }
+
+    // Load an episode and seek to the given chapter index.
+    // If autoPlay is true, start playback once the audio is ready.
+    function loadEpisode(ep, chapterIdx, autoPlay) {
+        hideError();
+        progressFill.style.width = '0%';
+        progressThumb.style.left = '0%';
+        timeDisplay.textContent = '0:00 / –:––';
+        setPlayingState(false);
+        episodeTitle.textContent = ep.title;
+        episodeLoading.classList.add('hidden');
+
+        var timestamp = 0;
+        if (chapterIdx > 0 && ep.chapters && ep.chapters[chapterIdx]) {
+            timestamp = ep.chapters[chapterIdx].timestamp;
+        }
+
+        var srcChanged = audio.src !== ep.url;
+        if (srcChanged) {
+            pendingSeek = timestamp;
+            audio.src = ep.url;
+            audio.load();
+        } else {
+            audio.currentTime = timestamp;
+            if (autoPlay) {
+                audio.play();
+            }
+        }
+
+        buildChapterList(ep);
+    }
+
+    // Pick a new random episode, push it onto the queue, and load it.
+    function pushRandom(autoPlay) {
+        if (!episodes.length) {
+            return;
+        }
+        var idx = Math.floor(Math.random() * episodes.length);
+        var ep = episodes[idx];
+        queue.push(ep);
+        queueIndex = queue.length - 1;
+        loadEpisode(ep, 0, autoPlay);
+    }
+
+    function goNext() {
+        var ep = currentEpisode();
+        if (!ep) {
+            return;
+        }
+        var chIdx = currentChapterIndex();
+        var hasNextChapter = ep.chapters.length > 0 && chIdx < ep.chapters.length - 1;
+
+        if (hasNextChapter) {
+            audio.currentTime = ep.chapters[chIdx + 1].timestamp;
+            audio.play();
+            return;
+        }
+
+        // Past the last chapter — move to next episode in queue, or pick a new one.
+        audio.pause();
+        if (queueIndex < queue.length - 1) {
+            queueIndex = queueIndex + 1;
+            loadEpisode(queue[queueIndex], 0, true);
+        } else {
+            pushRandom(true);
+        }
+    }
+
+    function goPrev() {
+        var ep = currentEpisode();
+        if (!ep) {
+            return;
+        }
+        var chIdx = currentChapterIndex();
+        var hasPrevChapter = chIdx > 0;
+
+        if (hasPrevChapter) {
+            audio.currentTime = ep.chapters[chIdx - 1].timestamp;
+            audio.play();
+            return;
+        }
+
+        // Already at first chapter of this episode.
+        if (queueIndex > 0) {
+            audio.pause();
+            queueIndex = queueIndex - 1;
+            var prevEp = queue[queueIndex];
+            var lastChapterIdx = prevEp.chapters.length > 0 ? prevEp.chapters.length - 1 : 0;
+            loadEpisode(prevEp, lastChapterIdx, true);
+        } else {
+            // At the very start of the session — just restart from beginning.
+            audio.currentTime = 0;
+            audio.play();
+        }
+    }
+
+    // Apply pendingSeek once audio is ready, then play if requested.
+    audio.addEventListener('canplay', function () {
+        if (pendingSeek !== null) {
+            audio.currentTime = pendingSeek;
+            pendingSeek = null;
+        }
+    });
+
+    audio.addEventListener('play', function () { setPlayingState(true); });
+    audio.addEventListener('pause', function () { setPlayingState(false); });
+    audio.addEventListener('ended', function () {
+        setPlayingState(false);
+        goNext();
+    });
+    audio.addEventListener('error', function () {
+        var ep = currentEpisode();
+        if (ep) {
+            setPlayingState(false);
+            showError(ep);
+        }
+    });
+    audio.addEventListener('timeupdate', updateProgress);
+
+    playBtn.addEventListener('click', function () {
+        if (!currentEpisode()) {
+            return;
+        }
+        if (audio.paused) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+    });
+
+    prevBtn.addEventListener('click', goPrev);
+    nextBtn.addEventListener('click', goNext);
+
+    shuffleBtn.addEventListener('click', function () {
+        audio.pause();
+        pushRandom(false);
+    });
+
+    errorShuffleBtn.addEventListener('click', function () {
+        audio.pause();
+        pushRandom(false);
+    });
+
+    function seekToClientX(clientX) {
+        if (isNaN(audio.duration) || audio.duration === 0) {
+            return;
+        }
+        var rect = progressTrack.getBoundingClientRect();
+        var fraction = (clientX - rect.left) / rect.width;
+        fraction = Math.max(0, Math.min(1, fraction));
+        audio.currentTime = fraction * audio.duration;
+    }
+
+    var dragging = false;
+
+    progressTrack.addEventListener('mousedown', function (e) {
+        dragging = true;
+        seekToClientX(e.clientX);
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        if (dragging) {
+            seekToClientX(e.clientX);
+        }
+    });
+
+    document.addEventListener('mouseup', function () {
+        dragging = false;
+    });
+
+    progressTrack.addEventListener('touchstart', function (e) {
+        seekToClientX(e.touches[0].clientX);
+    }, { passive: true });
+
+    progressTrack.addEventListener('touchmove', function (e) {
+        seekToClientX(e.touches[0].clientX);
+    }, { passive: true });
+
+    fetch('/assets/tal-episodes.json')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            episodes = data;
+            pushRandom(false);
+        })
+        .catch(function () {
+            episodeLoading.textContent = 'failed to load episode list.';
+        });
+}());
+</script>
+
+
+        </main>
+
+    </div>
+
+    <script>
+        var drawer = document.getElementById('drawer');
+        var backdrop = document.getElementById('backdrop');
+
+        function openMenu() {
+            drawer.classList.remove('translate-x-full');
+            backdrop.classList.remove('hidden');
+        }
+
+        function closeMenu() {
+            drawer.classList.add('translate-x-full');
+            backdrop.classList.add('hidden');
+        }
+
+        function toggleTheme() {
+            var html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        document.getElementById('menu-btn').addEventListener('click', openMenu);
+        document.getElementById('close-btn').addEventListener('click', closeMenu);
+        backdrop.addEventListener('click', closeMenu);
+        document.querySelectorAll('.theme-toggle-btn').forEach(function(btn) {
+            btn.addEventListener('click', toggleTheme);
+        });
+    </script>
+
+</body>
+</html>

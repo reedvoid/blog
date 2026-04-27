@@ -131,19 +131,38 @@ def check_collisions(posts):
     sys.exit(1)
 
 
-def generate_blog_posts(env, posts):
+def collect_sections():
+    sections = []
+    for md_file in sorted(CONTENT_DIR.glob("*.md")):
+        front_matter, _ = parse_md_file(md_file)
+        section = front_matter.get('section', '').strip()
+        if not section or section == 'blog':
+            continue
+        sections.append(section)
+    return sections
+
+
+def build_nav(sections):
+    nav = [{'name': 'blog', 'url': '/blog/'}]
+    for section in sections:
+        nav.append({'name': section, 'url': f'/{section}/'})
+    nav.append({'name': 'tal-player', 'url': '/tal-player/'})
+    return nav
+
+
+def generate_blog_posts(env, posts, nav):
     template = env.get_template('post.html')
     for post in posts:
         out_dir = OUTPUT_DIR / 'blog' / post['slug']
         out_dir.mkdir(parents=True, exist_ok=True)
-        rendered = template.render(post=post, active='blog')
+        rendered = template.render(post=post, active='blog', nav=nav)
         (out_dir / 'index.html').write_text(rendered, encoding='utf-8')
 
 
-def generate_blog_index(env, posts):
+def generate_blog_index(env, posts, nav):
     template = env.get_template('blog_index.html')
     sorted_posts = sorted(posts, key=lambda p: p['date'], reverse=True)
-    rendered = template.render(posts=sorted_posts, active='blog')
+    rendered = template.render(posts=sorted_posts, active='blog', nav=nav)
     out_dir = OUTPUT_DIR / 'blog'
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / 'index.html').write_text(rendered, encoding='utf-8')
@@ -163,7 +182,15 @@ def generate_css():
     )
 
 
-def generate_section(env, section_name, front_matter, html):
+def generate_tal_player(env, nav):
+    template = env.get_template('tal_player.html')
+    out_dir = OUTPUT_DIR / 'tal-player'
+    out_dir.mkdir(parents=True, exist_ok=True)
+    rendered = template.render(active='tal-player', nav=nav)
+    (out_dir / 'index.html').write_text(rendered, encoding='utf-8')
+
+
+def generate_section(env, section_name, front_matter, html, nav):
     template = env.get_template('section.html')
     out_dir = OUTPUT_DIR / section_name
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -171,6 +198,7 @@ def generate_section(env, section_name, front_matter, html):
         title=front_matter.get('title', section_name.capitalize()),
         html=html,
         active=section_name,
+        nav=nav,
     )
     (out_dir / 'index.html').write_text(rendered, encoding='utf-8')
 
@@ -186,8 +214,12 @@ def main():
     posts = collect_posts()
     check_collisions(posts)
 
-    generate_blog_posts(env, posts)
-    generate_blog_index(env, posts)
+    sections = collect_sections()
+    nav = build_nav(sections)
+
+    generate_blog_posts(env, posts, nav)
+    generate_blog_index(env, posts, nav)
+    generate_tal_player(env, nav)
 
     if ASSETS_DIR.exists():
         shutil.copytree(ASSETS_DIR, OUTPUT_DIR / "assets")
@@ -201,7 +233,7 @@ def main():
         if not section or section == 'blog':
             continue
         html = render_markdown(body)
-        generate_section(env, section, front_matter, html)
+        generate_section(env, section, front_matter, html, nav)
         section_count += 1
 
     cname_src = REPO_ROOT / "CNAME"
