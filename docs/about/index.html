@@ -121,26 +121,28 @@
         var drawer = document.getElementById('drawer');
         var backdrop = document.getElementById('backdrop');
 
-        function updateDrawerHeight() {
-            var vp = window.visualViewport;
-            drawer.style.height = (vp ? vp.height : window.innerHeight) + 'px';
+        // Always tracks the current visible viewport height so openMenu()
+        // never reads a stale value captured before a toolbar show/hide.
+        var drawerHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', function () {
+                drawerHeight = window.visualViewport.height;
+                if (!drawer.classList.contains('translate-x-full')) {
+                    drawer.style.height = drawerHeight + 'px';
+                }
+            });
         }
 
         function openMenu() {
-            updateDrawerHeight();
+            drawer.style.height = drawerHeight + 'px';
             drawer.classList.remove('translate-x-full');
             backdrop.classList.remove('hidden');
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', updateDrawerHeight);
-            }
         }
 
         function closeMenu() {
             drawer.classList.add('translate-x-full');
             backdrop.classList.add('hidden');
-            if (window.visualViewport) {
-                window.visualViewport.removeEventListener('resize', updateDrawerHeight);
-            }
         }
 
         function toggleTheme() {
