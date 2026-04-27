@@ -136,15 +136,16 @@
         var drawer = document.getElementById('drawer');
         var backdrop = document.getElementById('backdrop');
 
-        var dbgLog = document.getElementById('dbg-log');
-
         function dbg(label) {
             var vvh = window.visualViewport ? window.visualViewport.height : 'n/a';
             var inh = window.innerHeight;
             var dh  = drawer.style.height || '(not set)';
             var line = label + '\n  vv=' + vvh + ' ih=' + inh + ' dh=' + dh + '\n';
-            dbgLog.value += line;
-            dbgLog.scrollTop = dbgLog.scrollHeight;
+            var ta = document.getElementById('dbg-log');
+            if (ta) {
+                ta.value += line;
+                ta.scrollTop = ta.scrollHeight;
+            }
         }
 
         // Log viewport state at page load
