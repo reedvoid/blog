@@ -121,15 +121,26 @@
         var drawer = document.getElementById('drawer');
         var backdrop = document.getElementById('backdrop');
 
+        function updateDrawerHeight() {
+            var vp = window.visualViewport;
+            drawer.style.height = (vp ? vp.height : window.innerHeight) + 'px';
+        }
+
         function openMenu() {
-            drawer.style.height = window.innerHeight + 'px';
+            updateDrawerHeight();
             drawer.classList.remove('translate-x-full');
             backdrop.classList.remove('hidden');
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', updateDrawerHeight);
+            }
         }
 
         function closeMenu() {
             drawer.classList.add('translate-x-full');
             backdrop.classList.add('hidden');
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', updateDrawerHeight);
+            }
         }
 
         function toggleTheme() {
