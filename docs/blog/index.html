@@ -129,23 +129,26 @@
         var drawer = document.getElementById('drawer');
         var backdrop = document.getElementById('backdrop');
 
-        // Always tracks the current visible viewport height so openMenu()
-        // never reads a stale value captured before a toolbar show/hide.
-        var drawerHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        function vhNow() {
+            return window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        }
 
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', function () {
-                drawerHeight = window.visualViewport.height;
-                if (!drawer.classList.contains('translate-x-full')) {
-                    drawer.style.height = drawerHeight + 'px';
-                }
-            });
+        function applyDrawerHeight() {
+            drawer.style.height = vhNow() + 'px';
         }
 
         function openMenu() {
-            drawer.style.height = drawerHeight + 'px';
+            // Read fresh — visualViewport.height lags briefly after cross-page
+            // navigation (footer bar shows then hides on new page load).
+            // Re-read after 300ms to catch the lag resolving.
+            applyDrawerHeight();
             drawer.classList.remove('translate-x-full');
             backdrop.classList.remove('hidden');
+            setTimeout(function () {
+                if (!drawer.classList.contains('translate-x-full')) {
+                    applyDrawerHeight();
+                }
+            }, 300);
         }
 
         function closeMenu() {
