@@ -15,6 +15,8 @@
         }
     </script>
     <link rel="stylesheet" href="/assets/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
 </head>
 <body class="bg-white dark:bg-gray-900 text-black dark:text-gray-100 text-lg antialiased">
 
@@ -548,6 +550,21 @@
         var drawer = document.getElementById('drawer');
         var backdrop = document.getElementById('backdrop');
 
+        function dbg(label) {
+            var vvh = window.visualViewport ? window.visualViewport.height : 'n/a';
+            var inh = window.innerHeight;
+            var dh  = drawer.style.height || '(not set)';
+            console.log('[drawer] ' + label + ' | vv.height=' + vvh + ' innerHeight=' + inh + ' drawer.height=' + dh);
+        }
+
+        // Log viewport state at page load
+        window.addEventListener('load', function () { dbg('PAGE LOAD'); });
+
+        // Log every visualViewport resize event (read-only, no logic change)
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', function () { dbg('vv.resize'); });
+        }
+
         function vhNow() {
             return window.visualViewport ? window.visualViewport.height : window.innerHeight;
         }
@@ -560,12 +577,16 @@
             // Read fresh — visualViewport.height lags briefly after cross-page
             // navigation (footer bar shows then hides on new page load).
             // Re-read after 300ms to catch the lag resolving.
+            dbg('openMenu BEFORE applyDrawerHeight');
             applyDrawerHeight();
+            dbg('openMenu AFTER applyDrawerHeight');
             drawer.classList.remove('translate-x-full');
             backdrop.classList.remove('hidden');
             setTimeout(function () {
                 if (!drawer.classList.contains('translate-x-full')) {
+                    dbg('setTimeout BEFORE applyDrawerHeight');
                     applyDrawerHeight();
+                    dbg('setTimeout AFTER applyDrawerHeight');
                 }
             }, 2000);
         }
