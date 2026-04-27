@@ -33,7 +33,7 @@
     <div id="backdrop" class="md:hidden fixed inset-0 bg-black/20 dark:bg-black/40 z-40 hidden"></div>
 
     <!-- Slide-in drawer (mobile only) -->
-    <div id="drawer" class="md:hidden fixed top-0 right-0 bottom-0 w-52 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-50 translate-x-full transition-transform duration-200 ease-in-out flex flex-col">
+    <div id="drawer" class="md:hidden fixed top-0 right-0 w-52 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-50 translate-x-full transition-transform duration-200 ease-in-out flex flex-col overflow-y-auto">
         <div class="h-12 flex items-center justify-end px-5 shrink-0">
             <button id="close-btn" aria-label="Close menu" class="p-1 text-gray-800 dark:text-gray-300">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1">
@@ -122,6 +122,7 @@
         var backdrop = document.getElementById('backdrop');
 
         function openMenu() {
+            drawer.style.height = window.innerHeight + 'px';
             drawer.classList.remove('translate-x-full');
             backdrop.classList.remove('hidden');
         }
