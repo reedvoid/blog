@@ -60,6 +60,8 @@ A shuffle player for This American Life archival episodes, served at `/tal-playe
 
 Episode data is stored in `content/assets/tal-episodes.json` and loaded client-side at runtime. The page itself is generated directly from `generator/templates/tal_player.html` with no `.md` source file.
 
+**Queue persistence** — the playback queue (up to 100 episodes) and current position are saved to `localStorage['tal-queue']` after every navigation. On page load the queue is restored and the current episode is shown paused at the beginning. This survives mobile browser tab discards (e.g. iOS backgrounding the tab for long enough that the OS kills the process).
+
 **To update the episode list:**
 
 ```

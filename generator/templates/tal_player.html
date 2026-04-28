@@ -137,6 +137,39 @@
     // timestamp once the audio is ready. Store it here until canplay fires.
     var pendingSeek = null;
 
+    var STORAGE_KEY = 'tal-queue';
+    var QUEUE_MAX = 100;
+
+    function saveState() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                queue: queue,
+                queueIndex: queueIndex
+            }));
+        } catch (e) {}
+    }
+
+    function loadState() {
+        try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                return false;
+            }
+            var saved = JSON.parse(raw);
+            if (!Array.isArray(saved.queue) || saved.queue.length === 0) {
+                return false;
+            }
+            if (typeof saved.queueIndex !== 'number') {
+                return false;
+            }
+            queue = saved.queue;
+            queueIndex = Math.min(saved.queueIndex, queue.length - 1);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
     function fmt(seconds) {
         var s = Math.floor(seconds);
         var m = Math.floor(s / 60);
@@ -295,7 +328,11 @@
         var idx = Math.floor(Math.random() * episodes.length);
         var ep = episodes[idx];
         queue.push(ep);
+        if (queue.length > QUEUE_MAX) {
+            queue = queue.slice(queue.length - QUEUE_MAX);
+        }
         queueIndex = queue.length - 1;
+        saveState();
         loadEpisode(ep, 0, autoPlay);
     }
 
@@ -317,6 +354,7 @@
         audio.pause();
         if (queueIndex < queue.length - 1) {
             queueIndex = queueIndex + 1;
+            saveState();
             loadEpisode(queue[queueIndex], 0, true);
         } else {
             pushRandom(true);
@@ -341,6 +379,7 @@
         if (queueIndex > 0) {
             audio.pause();
             queueIndex = queueIndex - 1;
+            saveState();
             var prevEp = queue[queueIndex];
             var lastChapterIdx = prevEp.chapters.length > 0 ? prevEp.chapters.length - 1 : 0;
             loadEpisode(prevEp, lastChapterIdx, true);
@@ -437,7 +476,11 @@
         .then(function (r) { return r.json(); })
         .then(function (data) {
             episodes = data;
-            pushRandom(false);
+            if (!loadState()) {
+                pushRandom(false);
+            } else {
+                loadEpisode(currentEpisode(), 0, false);
+            }
         })
         .catch(function () {
             episodeLoading.textContent = 'failed to load episode list.';
