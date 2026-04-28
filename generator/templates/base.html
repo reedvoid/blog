@@ -95,59 +95,25 @@
         var drawer = document.getElementById('drawer');
         var backdrop = document.getElementById('backdrop');
 
-        function dbg(label) {
-            var vvh = window.visualViewport ? window.visualViewport.height : 'n/a';
-            var inh = window.innerHeight;
-            var dh  = drawer.style.height || '(not set)';
-            var line = label + '\n  vv=' + vvh + ' ih=' + inh + ' dh=' + dh + '\n';
-            var ta = document.getElementById('dbg-log');
-            if (ta) {
-                ta.value += line;
-                ta.scrollTop = ta.scrollHeight;
-            }
-        }
-
-        // Log viewport state at page load
-        window.addEventListener('load', function () { dbg('PAGE LOAD'); });
-
-        // Log resize events only while the drawer is open (suppresses scroll noise on long pages)
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', function () {
-                if (!drawer.classList.contains('translate-x-full')) {
-                    dbg('vv.resize (drawer open)');
-                }
-            });
-        }
-
-        function vhNow() {
-            return window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        }
-
         function applyDrawerHeight() {
-            drawer.style.height = vhNow() + 'px';
+            drawer.style.height = (window.visualViewport ? window.visualViewport.height : window.innerHeight) + 'px';
         }
 
         function openMenu() {
-            // Read fresh — visualViewport.height lags briefly after cross-page
-            // navigation (footer bar shows then hides on new page load).
-            // Re-read after 300ms to catch the lag resolving.
-            dbg('openMenu BEFORE applyDrawerHeight');
             applyDrawerHeight();
-            dbg('openMenu AFTER applyDrawerHeight');
             drawer.classList.remove('translate-x-full');
             backdrop.classList.remove('hidden');
-            setTimeout(function () {
-                if (!drawer.classList.contains('translate-x-full')) {
-                    dbg('setTimeout BEFORE applyDrawerHeight');
-                    applyDrawerHeight();
-                    dbg('setTimeout AFTER applyDrawerHeight');
-                }
-            }, 2000);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', applyDrawerHeight);
+            }
         }
 
         function closeMenu() {
             drawer.classList.add('translate-x-full');
             backdrop.classList.add('hidden');
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', applyDrawerHeight);
+            }
         }
 
         function toggleTheme() {
@@ -169,10 +135,6 @@
         });
     </script>
 
-    <!-- Debug log panel (temporary) — fixed so it adds no height to the page -->
-    <div style="position:fixed;bottom:0;left:0;z-index:9999;width:260px;background:rgba(0,0,0,0.88);padding:4px;">
-        <textarea id="dbg-log" readonly style="display:block;width:100%;height:140px;font-size:10px;font-family:monospace;background:transparent;color:#4ade80;border:none;resize:none;outline:none;"></textarea>
-    </div>
 
 </body>
 </html>
