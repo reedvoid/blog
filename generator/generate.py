@@ -3,11 +3,14 @@ import shutil
 import subprocess
 import sys
 from datetime import date, datetime
+from html import unescape as html_unescape
 from pathlib import Path
 
 import yaml
 import markdown
 from jinja2 import Environment, FileSystemLoader
+
+BASE_URL = 'https://reedvoid.com'
 
 REPO_ROOT = Path(__file__).parent.parent
 GENERATOR_DIR = Path(__file__).parent
@@ -67,6 +70,16 @@ def render_markdown(body):
     return html
 
 
+def make_description(html, word_limit=PREVIEW_WORD_LIMIT):
+    text = re.sub(r'<[^>]+>', '', html)
+    text = html_unescape(text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    words = text.split()
+    if len(words) <= word_limit:
+        return text
+    return ' '.join(words[:word_limit]) + '...'
+
+
 def make_preview(html, word_limit=PREVIEW_WORD_LIMIT):
     text = re.sub(r'<[^>]+>', '', html)
     text = re.sub(r'\s+', ' ', text).strip()
@@ -105,6 +118,7 @@ def collect_posts():
             'date_display': format_date(post_date),
             'html': rendered_html,
             'preview': make_preview(rendered_html),
+            'description': make_description(rendered_html),
             'source_file': str(md_file.relative_to(REPO_ROOT)),
             'url': f"/blog/{slug}/",
         })
@@ -158,18 +172,26 @@ def generate_blog_posts(env, posts, nav):
     for post in posts:
         out_dir = OUTPUT_DIR / 'blog' / post['slug']
         out_dir.mkdir(parents=True, exist_ok=True)
-        rendered = template.render(post=post, active='blog', nav=nav)
+        rendered = template.render(post=post, active='blog', nav=nav,
+                                   canonical=BASE_URL + post['url'],
+                                   description=post['description'])
         (out_dir / 'index.html').write_text(rendered, encoding='utf-8')
 
 
 def generate_blog_index(env, posts, nav):
     template = env.get_template('blog_index.html')
     sorted_posts = sorted(posts, key=lambda p: p['date'], reverse=True)
-    rendered = template.render(posts=sorted_posts, active='blog', nav=nav)
+    description = 'Writing by Steven on AI, tech, crypto, and startups.'
     out_dir = OUTPUT_DIR / 'blog'
     out_dir.mkdir(parents=True, exist_ok=True)
+    rendered = template.render(posts=sorted_posts, active='blog', nav=nav,
+                                canonical=BASE_URL + '/blog/',
+                                description=description)
     (out_dir / 'index.html').write_text(rendered, encoding='utf-8')
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    rendered = template.render(posts=sorted_posts, active='blog', nav=nav,
+                                canonical=BASE_URL + '/',
+                                description=description)
     (OUTPUT_DIR / 'index.html').write_text(rendered, encoding='utf-8')
 
 
@@ -189,11 +211,62 @@ def generate_tal_player(env, nav):
     template = env.get_template('tal_player.html')
     out_dir = OUTPUT_DIR / 'tal-player'
     out_dir.mkdir(parents=True, exist_ok=True)
-    rendered = template.render(active='tal-player', nav=nav)
+    rendered = template.render(active='tal-player', nav=nav,
+                                canonical=BASE_URL + '/tal-player/',
+                                description='Shuffle player for This American Life episodes.')
     (out_dir / 'index.html').write_text(rendered, encoding='utf-8')
 
 
-def generate_section(env, section_name, front_matter, html, nav):
+def generate_sitemap(posts, sections):
+    sorted_posts = sorted(posts, key=lambda p: p['date'], reverse=True)
+
+    lines = []
+    lines.append('<?xml version="1.0" encoding="UTF-8"?>')
+    lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+
+    if sorted_posts:
+        latest = str(sorted_posts[0]['date'])
+        lines.append('  <url>')
+        lines.append(f'    <loc>{BASE_URL}/</loc>')
+        lines.append(f'    <lastmod>{latest}</lastmod>')
+        lines.append('  </url>')
+        lines.append('  <url>')
+        lines.append(f'    <loc>{BASE_URL}/blog/</loc>')
+        lines.append(f'    <lastmod>{latest}</lastmod>')
+        lines.append('  </url>')
+    else:
+        lines.append('  <url>')
+        lines.append(f'    <loc>{BASE_URL}/</loc>')
+        lines.append('  </url>')
+        lines.append('  <url>')
+        lines.append(f'    <loc>{BASE_URL}/blog/</loc>')
+        lines.append('  </url>')
+
+    for post in sorted_posts:
+        lines.append('  <url>')
+        lines.append(f'    <loc>{BASE_URL}{post["url"]}</loc>')
+        lines.append(f'    <lastmod>{str(post["date"])}</lastmod>')
+        lines.append('  </url>')
+
+    for section in sections:
+        lines.append('  <url>')
+        lines.append(f'    <loc>{BASE_URL}/{section}/</loc>')
+        lines.append('  </url>')
+
+    lines.append('  <url>')
+    lines.append(f'    <loc>{BASE_URL}/tal-player/</loc>')
+    lines.append('  </url>')
+
+    lines.append('</urlset>')
+    (OUTPUT_DIR / 'sitemap.xml').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+
+
+def generate_robots():
+    content = f'User-agent: *\nAllow: /\nSitemap: {BASE_URL}/sitemap.xml\n'
+    (OUTPUT_DIR / 'robots.txt').write_text(content, encoding='utf-8')
+
+
+def generate_section(env, section_name, front_matter, html, nav, description):
     template = env.get_template('section.html')
     out_dir = OUTPUT_DIR / section_name
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -202,6 +275,8 @@ def generate_section(env, section_name, front_matter, html, nav):
         html=html,
         active=section_name,
         nav=nav,
+        canonical=BASE_URL + '/' + section_name + '/',
+        description=description,
     )
     (out_dir / 'index.html').write_text(rendered, encoding='utf-8')
 
@@ -236,12 +311,15 @@ def main():
         if not section or section == 'blog':
             continue
         html = render_markdown(body)
-        generate_section(env, section, front_matter, html, nav)
+        generate_section(env, section, front_matter, html, nav, make_description(html))
         section_count += 1
 
     cname_src = REPO_ROOT / "CNAME"
     if cname_src.exists():
         shutil.copy(cname_src, OUTPUT_DIR / "CNAME")
+
+    generate_sitemap(posts, sections)
+    generate_robots()
 
     print(f"Done: {len(posts)} blog post(s), {section_count} section(s).")
 
