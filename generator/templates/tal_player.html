@@ -139,12 +139,15 @@
 
     var STORAGE_KEY = 'tal-queue';
     var QUEUE_MAX = 100;
+    var restoredPosition = 0;
+    var lastSaveSecond = -1;
 
     function saveState() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({
                 queue: queue,
-                queueIndex: queueIndex
+                queueIndex: queueIndex,
+                position: audio.currentTime
             }));
         } catch (e) {}
     }
@@ -164,6 +167,7 @@
             }
             queue = saved.queue;
             queueIndex = Math.min(saved.queueIndex, queue.length - 1);
+            restoredPosition = (typeof saved.position === 'number' && saved.position > 0) ? saved.position : 0;
             return true;
         } catch (e) {
             return false;
@@ -233,6 +237,11 @@
         progressThumb.style.left = pct + '%';
         timeDisplay.textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
         updateChapterHighlight();
+        var sec = Math.floor(audio.currentTime / 5);
+        if (sec !== lastSaveSecond) {
+            lastSaveSecond = sec;
+            saveState();
+        }
     }
 
     function setPlayingState(playing) {
@@ -399,7 +408,10 @@
     });
 
     audio.addEventListener('play', function () { setPlayingState(true); });
-    audio.addEventListener('pause', function () { setPlayingState(false); });
+    audio.addEventListener('pause', function () {
+        setPlayingState(false);
+        saveState();
+    });
     audio.addEventListener('ended', function () {
         setPlayingState(false);
         goNext();
@@ -480,6 +492,9 @@
                 pushRandom(false);
             } else {
                 loadEpisode(currentEpisode(), 0, false);
+                if (restoredPosition > 0) {
+                    pendingSeek = restoredPosition;
+                }
             }
         })
         .catch(function () {

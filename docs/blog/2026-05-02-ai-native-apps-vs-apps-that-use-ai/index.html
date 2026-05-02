@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>blog | reedvoid</title>
+    <title>ai-native apps vs. apps that use ai | reedvoid</title>
     <link rel="icon" href="/assets/favicon/favicon.ico" sizes="any">
     <link rel="icon" href="/assets/favicon/favicon-32x32.png" type="image/png" sizes="32x32">
     <link rel="icon" href="/assets/favicon/favicon-16x16.png" type="image/png" sizes="16x16">
@@ -95,40 +95,26 @@
         <!-- Main content -->
         <main class="flex-1 min-w-0 px-8 pt-20 pb-14 md:px-12 md:pt-[108px]">
             
-
-<ul class="list-none p-0 m-0 space-y-7">
-    
-    <li>
-        
-        <a href="/blog/2026-05-02-ai-native-apps-vs-apps-that-use-ai/" class="no-underline group block">
-            <h2 class="text-xl m-0 text-blue-600 dark:text-orange-400 group-hover:underline underline-offset-2 mb-0.5">ai-native apps vs. apps that use ai</h2>
-            <time class="text-gray-400 dark:text-gray-500 text-xs">May 2, 2026</time>
-            <p class="mt-3 text-gray-600 dark:text-gray-400 font-light leading-relaxed">Been reading through gbrain code for a few days. I may be late to the party but this looks like a new class of AI-native apps. What differentiates an AI-native app vs. an app that uses AI? Here's what I surmised from gbrain. ### 1....</p>
-            <span class="mt-2 inline-block text-sm text-gray-400 dark:text-gray-500 group-hover:underline underline-offset-2">Read more →</span>
-        </a>
-        
-    </li>
-    
-    <li>
-        
-        <a href="/blog/2026-04-26-cryptos-re-centralization/" class="no-underline group block">
-            <h2 class="text-xl m-0 text-blue-600 dark:text-orange-400 group-hover:underline underline-offset-2 mb-0.5">crypto's re-centralization</h2>
-            <time class="text-gray-400 dark:text-gray-500 text-xs">April 26, 2026</time>
-        </a>
-        
-    </li>
-    
-    <li>
-        
-        <a href="/blog/2026-04-24-hello-world-again/" class="no-underline group block">
-            <h2 class="text-xl m-0 text-blue-600 dark:text-orange-400 group-hover:underline underline-offset-2 mb-0.5">hello world (again)</h2>
-            <time class="text-gray-400 dark:text-gray-500 text-xs">April 24, 2026</time>
-        </a>
-        
-    </li>
-    
-</ul>
-
+<article>
+    <header class="mb-10">
+        <h1 class="text-2xl font-semibold mb-2">ai-native apps vs. apps that use ai</h1>
+        <time class="text-gray-400 dark:text-gray-500 text-xs">May 2, 2026</time>
+    </header>
+    <div class="prose font-light">
+        <p>Been reading through gbrain code for a few days. I may be late to the party but this looks like a new class of AI-native apps. </p>
+<p>What differentiates an AI-native app vs. an app that uses AI? Here's what I surmised from gbrain.</p>
+<h3>1. Machine-2-machine communication is in English</h3>
+<p>This is the most interesting design choice. In gbrain, human query -&gt; agent -&gt; resolver (index of skills in English) -&gt; skills (how-to recipes in English) -&gt; deterministic code (through MCP). Instead of using structured data &amp; code to guide agent behavior, human language is the language of choice.</p>
+<h3>2. Non-deterministic agents call deterministic code</h3>
+<p>The agent is the user of gbrain, not humans. Therefore, it's the non-deterministic agent that calls on the deterministic tooling, not the other way around. Whereas a regular "app that uses AI" has deterministic code crafting &amp; feeding queries into a stateless LLM. </p>
+<p>Note: I define agent as a LLM wrapped in a harness that manages context, maintains a persistent internal state &amp; runtime.</p>
+<h3>3. Context-centric architecture</h3>
+<p>Context management isn't necessary for simple prompting, but becomes indispensable for large-scale &amp; complex problems when you regularly hit the LLM's context-window limits. AI-native apps like gbrain have built-in RAG.</p>
+<p>As a side-note, RAG seems to be the primary swappable tooling if you want to switch use cases (besides the skills obviously). </p>
+<p>gbrain's RAG is specifically set up for a VC. Examples: built-in graph edges such as "invested_in, founded", backlink retrieval weight boost that values relationship density &amp; differentiates between data sources, timelines as a hardcoded concept in the schema / parsing / page-generation / basically everywhere.</p>
+<p>If you want to use this in biomedical research, for example, you'd probably swap out text-embedding-3-large to something like a bioBERT, use biomedical ontology dictionaries to build the knowledge graph which would then be far more heavily weighted for retrieval than FTS / vector search, etc.</p>
+    </div>
+</article>
 
         </main>
 
