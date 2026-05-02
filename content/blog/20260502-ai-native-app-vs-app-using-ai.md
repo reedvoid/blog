@@ -4,7 +4,7 @@ date: 2026-05-02
 section: blog
 ---
 
-Been reading through gbrain code for a few days. I may be late to the party but this looks like a new class of AI-native apps. 
+Been reading through [gbrain](https://github.com/garrytan/gbrain) code for a few days. I may be late to the party but this looks like a new class of AI-native apps. 
 
 What differentiates an AI-native app vs. an app that uses AI? Here's what I surmised from gbrain.
 
