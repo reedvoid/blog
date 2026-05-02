@@ -67,10 +67,12 @@ def render_markdown(body):
     return html
 
 
-def make_preview(body, word_limit=PREVIEW_WORD_LIMIT):
-    words = body.split()
+def make_preview(html, word_limit=PREVIEW_WORD_LIMIT):
+    text = re.sub(r'<[^>]+>', '', html)
+    text = re.sub(r'\s+', ' ', text).strip()
+    words = text.split()
     if len(words) <= word_limit:
-        return body
+        return text
     return ' '.join(words[:word_limit]) + '...'
 
 
@@ -95,13 +97,14 @@ def collect_posts():
             continue
 
         slug = post_slug(title, post_date)
+        rendered_html = render_markdown(body)
         posts.append({
             'slug': slug,
             'title': title,
             'date': post_date,
             'date_display': format_date(post_date),
-            'html': render_markdown(body),
-            'preview': make_preview(body),
+            'html': rendered_html,
+            'preview': make_preview(rendered_html),
             'source_file': str(md_file.relative_to(REPO_ROOT)),
             'url': f"/blog/{slug}/",
         })
