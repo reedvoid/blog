@@ -34,9 +34,10 @@ USER_AGENT = (
 EPISODE_DELAY = 1.5
 # Seconds to wait between archive year page requests (Cloudflare is stricter here).
 ARCHIVE_DELAY = 8.0
-# On 403, retry this many times with exponential backoff starting at this many seconds.
+# On 403, 429, or 5xx, retry this many times with exponential backoff starting at this many seconds.
 RETRY_COUNT = 4
 RETRY_BASE_DELAY = 30.0
+RETRY_STATUSES = (403, 429, 500, 502, 503, 504)
 
 
 def fetch(url):
@@ -63,8 +64,8 @@ def fetch_with_retry(url):
         try:
             return fetch(url)
         except urllib.error.HTTPError as e:
-            if e.code == 403 and attempt < RETRY_COUNT:
-                print(f"    403 — waiting {delay:.0f}s before retry {attempt + 1}/{RETRY_COUNT}...")
+            if e.code in RETRY_STATUSES and attempt < RETRY_COUNT:
+                print(f"    {e.code} — waiting {delay:.0f}s before retry {attempt + 1}/{RETRY_COUNT}...")
                 time.sleep(delay)
                 delay = delay * 2
             else:

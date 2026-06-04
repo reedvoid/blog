@@ -62,16 +62,25 @@ Episode data is stored in `content/assets/tal-episodes.json` and loaded client-s
 
 **Queue persistence** — the playback queue (up to 100 episodes) and current position are saved to `localStorage['tal-queue']` after every navigation. On page load the queue is restored and the current episode is shown paused at the beginning. This survives mobile browser tab discards (e.g. iOS backgrounding the tab for long enough that the OS kills the process).
 
-**To update the episode list:**
+**To update the episode list (normal case):**
+
+```
+.venv/bin/python scripts/update_tal_episodes.py
+.venv/bin/python generator/generate.py
+```
+
+`update_tal_episodes.py` does an incremental refresh: it HEAD-validates all existing audio URLs in parallel (10 workers), then discovers new episodes by fetching the `/archive` newest-first landing and the `/` homepage. Only episodes with a number higher than the current max are fetched. Typical wall time ~30s. It will surface broken existing URLs in its summary but does not auto-repair them.
+
+**Full rescrape (rebuild from scratch):**
 
 ```
 .venv/bin/python scripts/scrape_tal_episodes.py
 .venv/bin/python generator/generate.py
 ```
 
-The scraper HEAD-checks every existing audio URL for reachability, then re-fetches all episode pages from thisamericanlife.org to get fresh `playlist-data`. Run periodically to pick up newly available episodes.
+This walks `/archive?year=YYYY` for every year from 1995 onward and re-fetches every episode page. Takes ~30 minutes due to per-page rate-limit delays. Use it if the JSON gets out of sync, an episode's URL changes, or you want to refresh metadata. The `/archive?year=YYYY` endpoint can lag for the most recent few episodes, so a full rescrape immediately after a release may still need a follow-up `update_tal_episodes.py` run to pick them up.
 
-The `.scrape-cache/` directory is a within-run deduplication cache and is wiped at the start of every scrape. It is not committed to the repo.
+The `.scrape-cache/` directory is a within-run deduplication cache used by `scrape_tal_episodes.py` only; it is wiped at the start of every full scrape and is not committed.
 
 ## GitHub Pages setup
 
