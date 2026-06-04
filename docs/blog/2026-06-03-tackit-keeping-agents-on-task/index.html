@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tackit - keeping agents on task | reedvoid</title>
+    <meta name="description" content="After working on multiple large-scale projects with AI coding agents, I built a utility called tackit to help keep agents on task &amp; improve context window efficiency. Here are the problems I&#39;m trying to solve, Scattered records: agents constantly create new files in different formats,...">
+    <link rel="canonical" href="https://reedvoid.com/blog/2026-06-03-tackit-keeping-agents-on-task/">
+    <link rel="icon" href="/assets/favicon/favicon.ico" sizes="any">
+    <link rel="icon" href="/assets/favicon/favicon-32x32.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="/assets/favicon/favicon-16x16.png" type="image/png" sizes="16x16">
+    <link rel="apple-touch-icon" href="/assets/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/assets/favicon/site.webmanifest">
+    <script>
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body class="bg-white dark:bg-gray-900 text-black dark:text-gray-100 text-lg antialiased">
+
+    <!-- Mobile top bar (hidden on md+) -->
+    <header class="md:hidden fixed top-0 left-0 right-0 h-12 flex items-center justify-between px-5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-30">
+        <a href="/" class="font-mono text-xl font-bold text-gray-900 dark:text-gray-100 no-underline">reedvoid</a>
+        <button id="menu-btn" aria-label="Open menu" class="p-1 text-gray-800 dark:text-gray-300">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1">
+                <line x1="0" y1="7" x2="20" y2="7"/>
+                <line x1="0" y1="13" x2="20" y2="13"/>
+            </svg>
+        </button>
+    </header>
+
+    <!-- Backdrop (mobile only) -->
+    <div id="backdrop" class="md:hidden fixed inset-0 bg-black/20 dark:bg-black/40 z-40 hidden"></div>
+
+    <!-- Slide-in drawer (mobile only) -->
+    <div id="drawer" class="md:hidden fixed top-0 right-0 w-52 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 z-50 translate-x-full transition-transform duration-200 ease-in-out flex flex-col overflow-y-auto">
+        <div class="h-12 flex items-center justify-end px-5 shrink-0">
+            <button id="close-btn" aria-label="Close menu" class="p-1 text-gray-800 dark:text-gray-300">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1">
+                    <line x1="3" y1="3" x2="17" y2="17"/>
+                    <line x1="17" y1="3" x2="3" y2="17"/>
+                </svg>
+            </button>
+        </div>
+        <nav class="px-7 pt-6">
+            <ul class="list-none p-0 m-0 space-y-4">
+                
+                <li><a href="/blog/" class="no-underline text-gray-900 dark:text-gray-100 font-medium">blog</a></li>
+                
+                <li><a href="/about/" class="no-underline text-gray-400 dark:text-gray-500">about</a></li>
+                
+                <li><a href="/tal-player/" class="no-underline text-gray-400 dark:text-gray-500">tal-player</a></li>
+                
+            </ul>
+        </nav>
+        <div class="mt-auto px-7 pb-10">
+            <button class="theme-toggle-btn text-xs transition-colors">
+                <span class="text-gray-900 dark:text-gray-500">light</span>
+                <span class="text-gray-300 dark:text-gray-600 mx-1">·</span>
+                <span class="text-gray-400 dark:text-gray-100">dark</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Centered page wrapper -->
+    <div class="max-w-4xl mx-auto flex min-h-screen">
+
+        <!-- Desktop sidebar (hidden below md) -->
+        <aside class="hidden md:block w-44 shrink-0">
+            <div class="sticky top-0 h-screen flex flex-col py-10 px-7 border-r border-gray-100 dark:border-gray-800">
+                <div class="mb-10">
+                    <a href="/" class="font-mono text-xl font-bold text-gray-900 dark:text-gray-100 no-underline">reedvoid</a>
+                </div>
+                <nav>
+                    <ul class="list-none p-0 m-0 space-y-3">
+                        
+                        <li><a href="/blog/" class="no-underline transition-colors text-gray-900 dark:text-gray-100 font-medium">blog</a></li>
+                        
+                        <li><a href="/about/" class="no-underline transition-colors text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">about</a></li>
+                        
+                        <li><a href="/tal-player/" class="no-underline transition-colors text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">tal-player</a></li>
+                        
+                    </ul>
+                </nav>
+                <div class="mt-auto">
+                    <button class="theme-toggle-btn text-xs transition-colors">
+                        <span class="text-gray-900 dark:text-gray-500">light</span>
+                        <span class="text-gray-300 dark:text-gray-600 mx-1">·</span>
+                        <span class="text-gray-400 dark:text-gray-100">dark</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 min-w-0 px-8 pt-20 pb-14 md:px-12 md:pt-[108px]">
+            
+<article>
+    <header class="mb-10">
+        <h1 class="text-2xl font-semibold mb-2">tackit - keeping agents on task</h1>
+        <time class="text-gray-400 dark:text-gray-500 text-xs">June 3, 2026</time>
+    </header>
+    <div class="prose font-light">
+        <p>After working on multiple large-scale projects with AI coding agents, I built a utility called <a href="https://github.com/reedvoid/tackit" target="_blank" rel="noopener noreferrer">tackit</a> to help keep agents on task &amp; improve context window efficiency. Here are the problems I'm trying to solve, </p>
+<ul>
+<li><strong>Scattered records</strong>: agents constantly create new files in different formats, scattered everywhere, to keep track of tasks which often get buried &amp; lost. </li>
+<li><strong>Context erosion</strong>: every prompt re-reads lengthy planning docs, todo files, chat histories, triggering frequent auto-compaction and quality degradation.</li>
+<li><strong>Dependency hell</strong>: dependency tracking is almost non-existent, relying on code-execution errors for dependency discovery, burying any where test coverage falls short.</li>
+</ul>
+<p>I've been dog-fooding tackit for a week and fixed a ton of logical &amp; efficiency issues, hopefully this little tool can be of help to others. </p>
+<h3>tackit keeps agents on track</h3>
+<p>tackit is a deterministic app that helps keep agents on track with task management (in db with strict schema and pydantic validation), strongly nudges agents to resolve dependency cascades (strongly-bounded) upon edits with close-gates (can't close a task without resolving dependency cascades), minimal context bloat by surfacing &amp; retrieving exactly the specs needed to complete tasks, and diff-based editing to minimize context &amp; inference bloat. </p>
+<p>It also comes with a wide range of skill, mcp, and agent settings (e.g., claude.md) based nudges to improve coding agents' behaviors. Failing loud / ship-on-pain clauses help to revert agents' natural inclination to frequently ignore failures, assume degradation is acceptable, and silently moving forward. A fold-back behavior that strongly suggests folding learnings back into specific task's design &amp; implementation specs post-implementation, as the process of writing code often leads to new discoveries. </p>
+<p>There are a ton more nuanced features &amp; capabilities but these are the highlights. </p>
+<h3>opinionated spec&lt;&gt;task coupling</h3>
+<p>tackit is natively aware of the difference between design / schema specifications, vs. production (coding) tasks, vs. meta (discussion, notes, comments) tasks. Specifically tackit is designed to tightly couple specification &lt;&gt; production tasks. </p>
+<p>After using coding agents for a while, I got into the habit of keeping a set of design &amp; schema specs that are constantly synced with implementation. This wasn't usually the case pre-ai, and the design spec written at the beginning of projects tend to to stale pretty quickly, relying on in-code notes &amp; comments as reminders. With ai agents, I found if there wasn't a persistent, clearly laid out spec that is constantly updated, the agent drifts extremely fast and becomes extremely slow as it needs to ingest massive amounts of codebase &amp; run tests to figure out what is happening. </p>
+<p>Hence one of tackit's primary goals is to keep specifications constantly in sync with implementation, including all dependencies. </p>
+<h3>getting started</h3>
+<p>There are two parts to the installation, one for the human, one for the agent. </p>
+<p>Step 1: Humans just run pypi to install the package, </p>
+<pre><code class="language-bash">pip install tackit
+</code></pre>
+<p>Step 2: After the package is installed, go into the coding agent and ask it to wire up the mcp &amp; skills. </p>
+<pre><code class="language-bash">I've installed the `tackit` Python package. Run `tackit setup` and carry out the steps it prints to register it (MCP server + skill) for this project.
+</code></pre>
+<p>That's it, let me know what you think!</p>
+    </div>
+</article>
+
+        </main>
+
+    </div>
+
+    <script>
+        var drawer = document.getElementById('drawer');
+        var backdrop = document.getElementById('backdrop');
+
+        function applyDrawerHeight() {
+            drawer.style.height = (window.visualViewport ? window.visualViewport.height : window.innerHeight) + 'px';
+        }
+
+        function openMenu() {
+            applyDrawerHeight();
+            drawer.classList.remove('translate-x-full');
+            backdrop.classList.remove('hidden');
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', applyDrawerHeight);
+            }
+        }
+
+        function closeMenu() {
+            drawer.classList.add('translate-x-full');
+            backdrop.classList.add('hidden');
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', applyDrawerHeight);
+            }
+        }
+
+        function toggleTheme() {
+            var html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        document.getElementById('menu-btn').addEventListener('click', openMenu);
+        document.getElementById('close-btn').addEventListener('click', closeMenu);
+        backdrop.addEventListener('click', closeMenu);
+        document.querySelectorAll('.theme-toggle-btn').forEach(function(btn) {
+            btn.addEventListener('click', toggleTheme);
+        });
+    </script>
+
+
+</body>
+</html>
