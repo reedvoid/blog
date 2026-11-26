@@ -16,17 +16,24 @@ Steps:
 
 1. Validate every existing audio URL (parallel HEAD requests). The audio
    files live on static paths without the per-IP rate limit of the pages.
+   A URL counts as broken unless it returns 200 with a Content-Length of at
+   least MIN_AUDIO_BYTES: a pre-release page serves a short promo clip that
+   returns 200 (ep 888 was indexed in 2026-06 with a 1.4 MB promo).
 2. Repair each broken URL by re-fetching /episode/N and taking its current
    audio URL. TAL moves files over time (e.g. to /audio/upload/archive/N.mp3,
    or to a new token under /audio/N/).
 3. Find the newest episode: the highest number on the /archive landing and
    the / homepage, then probe /episode/N+1 upward until a 404.
 4. Fetch every episode number from 1 to the newest that the index lacks.
-5. Check that the index holds exactly episodes 1..newest, each with an audio
-   URL that returned 200 during this run.
+5. Check that the index holds exactly episodes 1..newest minus
+   EXCLUDED_EPISODES, each with an audio URL that passed the check above
+   during this run.
 
-Any failure (a fetch error, a page without audio, an audio URL that doesn't
-return 200, a gap) fails the whole run: the JSON is left untouched and the
+EXCLUDED_EPISODES lists episodes TAL no longer serves full audio for, each
+with its reason. They are dropped from the index and never fetched.
+
+Any failure (a fetch error, a page without full audio, a gap) fails the
+whole run: the JSON is left untouched and the
 exit status is 1. Pass --allow-failures to write the episodes that did
 succeed anyway (e.g. when TAL has genuinely pulled an episode).
 
@@ -40,14 +47,15 @@ import re
 import sys
 import time
 import urllib.error
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scrape_tal_episodes import (
     OUTPUT_PATH,
     EPISODE_DELAY,
+    USER_AGENT,
     fetch_with_retry,
-    head_status,
     extract_episode_slugs,
     extract_playlist_data,
     build_episode_record,
@@ -64,22 +72,58 @@ HEAD_RETRY_BASE_DELAY = 10.0
 HEAD_RETRY_STATUSES = (429, 503)
 # Pause between the two discovery-landing fetches.
 DISCOVERY_DELAY = 2.0
+# Smallest audio file accepted as a full episode. Measured 2026-11: the
+# smallest of 900 full episodes is over 10 MB; promo clips are 240 KB-1.4 MB
+# and a removed episode's archive URL serves a 242-byte stub.
+MIN_AUDIO_BYTES = 5_000_000
+
+EXCLUDED_EPISODES = {
+    454: "retracted by TAL in 2012 (Mike Daisey's China story was fabricated); "
+         "TAL removed the audio and the page serves only its pre-air preview clip",
+}
 
 
 class EpisodeNotFound(Exception):
     """/episode/N returned 404: no such episode (yet)."""
 
 
-def head_status_with_retry(url):
+def head_audio(url):
+    """
+    (status, content_length) for a HEAD request. status is None on a network
+    error; content_length is None when the header is absent.
+    """
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT}, method="HEAD")
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            length = resp.headers.get("Content-Length")
+            if length is None:
+                return resp.status, None
+            return resp.status, int(length)
+    except urllib.error.HTTPError as e:
+        return e.code, None
+    except Exception:
+        return None, None
+
+
+def audio_problem(url):
+    """None if url serves a full episode, else the reason it doesn't."""
     delay = HEAD_RETRY_BASE_DELAY
     for attempt in range(HEAD_RETRY_ATTEMPTS):
-        status = head_status(url)
+        status, length = head_audio(url)
         if status in HEAD_RETRY_STATUSES and attempt < HEAD_RETRY_ATTEMPTS - 1:
             time.sleep(delay)
             delay = delay * 2
             continue
-        return status
-    return status
+        break
+    if status is None:
+        return "network error"
+    if status != 200:
+        return f"HTTP {status}"
+    if length is None:
+        return "no Content-Length"
+    if length < MIN_AUDIO_BYTES:
+        return f"only {length} bytes (promo or stub, not a full episode)"
+    return None
 
 
 def validate_parallel(episodes):
@@ -88,15 +132,15 @@ def validate_parallel(episodes):
     broken = []
 
     def check(ep):
-        return ep, head_status_with_retry(ep["url"])
+        return ep, audio_problem(ep["url"])
 
     with ThreadPoolExecutor(max_workers=VALIDATION_WORKERS) as executor:
         futures = [executor.submit(check, ep) for ep in episodes]
         for future in as_completed(futures):
-            ep, status = future.result()
-            if status != 200:
-                broken.append((ep, status))
-                print(f"  BROKEN ep {ep['episode']}: {ep['title']} — {status}")
+            ep, problem = future.result()
+            if problem is not None:
+                broken.append((ep, problem))
+                print(f"  BROKEN ep {ep['episode']}: {ep['title']} — {problem}")
 
     broken.sort(key=lambda item: episode_number(item[0]))
     print(f"Validation: {total - len(broken)} ok, {len(broken)} broken.")
@@ -110,7 +154,8 @@ def episode_number(record):
 def fetch_episode(number):
     """
     Fetches /episode/N and returns its record, with an audio URL that just
-    returned 200. Raises EpisodeNotFound on a 404 page; raises RuntimeError
+    passed audio_problem. The page's `archive` URL is tried first, then its
+    `audio` URL. Raises EpisodeNotFound on a 404 page; raises RuntimeError
     with a reason for every other failure.
     """
     url = EPISODE_BY_NUMBER_URL.format(number=number)
@@ -131,10 +176,17 @@ def fetch_episode(number):
         raise RuntimeError(f"{url} is episode {record['episode']!r}, expected {number}")
     if not record["url"]:
         raise RuntimeError(f"no audio URL on {url}")
-    status = head_status_with_retry(record["url"])
-    if status != 200:
-        raise RuntimeError(f"audio URL returned {status}: {record['url']}")
-    return record
+    candidates = [record["url"]]
+    if record["simplecast_url"] and record["simplecast_url"] != record["url"]:
+        candidates.append(record["simplecast_url"])
+    problems = []
+    for candidate in candidates:
+        problem = audio_problem(candidate)
+        if problem is None:
+            record["url"] = candidate
+            return record
+        problems.append(f"{problem}: {candidate}")
+    raise RuntimeError("no full-episode audio — " + "; ".join(problems))
 
 
 def newest_listed_number():
@@ -186,6 +238,13 @@ def main(argv=None):
     by_number = {}
     for ep in episodes:
         by_number[episode_number(ep)] = ep
+    known_max = max(by_number) if by_number else 0
+    removed = []
+    for number in sorted(EXCLUDED_EPISODES):
+        if number in by_number:
+            del by_number[number]
+            removed.append(number)
+            print(f"Dropping excluded ep {number}: {EXCLUDED_EPISODES[number]}")
     # Failures as (episode number or None, reason).
     failures = []
     repaired = []
@@ -201,15 +260,15 @@ def main(argv=None):
 
     print("--- Step 1: Validate existing audio URLs (parallel) ---")
     t0 = time.time()
-    broken = validate_parallel(episodes)
+    broken = validate_parallel(list(by_number.values()))
     print(f"  ({time.time() - t0:.1f}s)")
 
     print("\n--- Step 2: Repair broken audio URLs ---")
     if not broken:
         print("  nothing to repair")
-    for ep, status in broken:
+    for ep, problem in broken:
         number = episode_number(ep)
-        print(f"  ep {number} ({status})")
+        print(f"  ep {number} ({problem})")
         try:
             record = fetch_paced(number)
         except (EpisodeNotFound, RuntimeError) as e:
@@ -221,7 +280,7 @@ def main(argv=None):
         print(f"    ok — {ep['url']}\n      -> {record['url']}")
 
     print("\n--- Step 3: Find the newest episode ---")
-    newest = max(by_number) if by_number else 0
+    newest = known_max
     listed, discovery_errors = newest_listed_number()
     for error in discovery_errors:
         failures.append((None, f"discovery failed: {error}"))
@@ -249,7 +308,7 @@ def main(argv=None):
     print(f"\n--- Step 4: Fetch episodes missing from 1..{newest} ---")
     missing = []
     for number in range(1, newest + 1):
-        if number not in by_number:
+        if number not in by_number and number not in EXCLUDED_EPISODES:
             missing.append(number)
     print(f"  {len(missing)} missing: {missing}")
     for number in missing:
@@ -267,11 +326,12 @@ def main(argv=None):
     print("\n--- Step 5: Completeness check ---")
     still_missing = []
     for number in range(1, newest + 1):
-        if number not in by_number:
+        if number not in by_number and number not in EXCLUDED_EPISODES:
             still_missing.append(number)
     if still_missing:
         failures.append((None, f"index lacks episodes {still_missing}"))
-    print(f"  index holds {len(by_number)} episodes; expected 1..{newest}; lacking {still_missing}")
+    print(f"  index holds {len(by_number)} episodes; expected 1..{newest} "
+          f"minus excluded {sorted(EXCLUDED_EPISODES)}; lacking {still_missing}")
 
     merged = []
     for number in sorted(by_number):
@@ -279,6 +339,7 @@ def main(argv=None):
 
     print(f"\nRepaired {len(repaired)}: {sorted(repaired)}")
     print(f"Added {len(added)}: {sorted(added)}")
+    print(f"Removed (excluded) {len(removed)}: {removed}")
 
     if failures:
         print(f"\nFAILED ({len(failures)}):")
@@ -295,7 +356,7 @@ def main(argv=None):
         print("  - rerun with --allow-failures to write the episodes that succeeded")
         return 1
 
-    if not repaired and not added:
+    if not repaired and not added and not removed:
         print(f"\nNothing changed — {OUTPUT_PATH} unchanged.")
     else:
         with open(OUTPUT_PATH, "w", encoding="utf-8") as f:

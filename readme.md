@@ -73,11 +73,13 @@ Episode data is stored in `content/assets/tal-episodes.json` and loaded client-s
 
 `update_tal_episodes.py` does an incremental refresh. It fetches episodes by number through `/episode/N`, which redirects to the episode's current page and 404s for a number that doesn't exist yet, so it never depends on a listing page being complete (the year pages and the `/archive` landing both omit episodes). In order, it:
 
-1. HEAD-validates every existing audio URL in parallel (10 workers).
+1. HEAD-validates every existing audio URL in parallel (10 workers). A URL counts as broken unless it returns 200 with at least 5 MB of audio: a pre-release page serves a short promo clip that returns 200.
 2. Repairs each broken URL by re-fetching the episode's page and taking its current audio URL (TAL moves files over time).
 3. Finds the newest episode: the highest number on the `/archive` landing and `/` homepage, then probes `/episode/N+1` upward until a 404.
 4. Fetches every episode number from 1 to the newest that the index lacks.
-5. Checks the index holds exactly episodes 1..newest.
+5. Checks the index holds exactly episodes 1..newest, minus `EXCLUDED_EPISODES`.
+
+`EXCLUDED_EPISODES` (in the script) lists episodes TAL no longer serves full audio for, each with its reason; they are dropped from the index and never fetched. Currently: 454, "Mr. Daisey and the Apple Factory", retracted by TAL in 2012.
 
 Any failure (fetch error, page without audio, audio URL not returning 200, a gap) fails the run with exit status 1 and leaves the JSON untouched. `--allow-failures` writes the episodes that succeeded anyway, still exiting 1. Typical wall time ~30s plus ~1.5s per episode page fetched.
 
