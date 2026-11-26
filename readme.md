@@ -23,6 +23,8 @@ generator/
     tal_player.html      # TAL shuffle player (no .md source — see TAL Player)
 scripts/
   scrape_tal_episodes.py # scrapes thisamericanlife.org, writes tal-episodes.json
+  update_tal_episodes.py # incremental refresh + repair of tal-episodes.json
+  test_update_tal_episodes.py
 docs/                    # generated output — GitHub Pages source
 ```
 
@@ -69,7 +71,17 @@ Episode data is stored in `content/assets/tal-episodes.json` and loaded client-s
 .venv/bin/python generator/generate.py
 ```
 
-`update_tal_episodes.py` does an incremental refresh: it HEAD-validates all existing audio URLs in parallel (10 workers), then discovers new episodes by fetching the `/archive` newest-first landing and the `/` homepage. Only episodes with a number higher than the current max are fetched. Typical wall time ~30s. It will surface broken existing URLs in its summary but does not auto-repair them.
+`update_tal_episodes.py` does an incremental refresh. It fetches episodes by number through `/episode/N`, which redirects to the episode's current page and 404s for a number that doesn't exist yet, so it never depends on a listing page being complete (the year pages and the `/archive` landing both omit episodes). In order, it:
+
+1. HEAD-validates every existing audio URL in parallel (10 workers).
+2. Repairs each broken URL by re-fetching the episode's page and taking its current audio URL (TAL moves files over time).
+3. Finds the newest episode: the highest number on the `/archive` landing and `/` homepage, then probes `/episode/N+1` upward until a 404.
+4. Fetches every episode number from 1 to the newest that the index lacks.
+5. Checks the index holds exactly episodes 1..newest.
+
+Any failure (fetch error, page without audio, audio URL not returning 200, a gap) fails the run with exit status 1 and leaves the JSON untouched. `--allow-failures` writes the episodes that succeeded anyway, still exiting 1. Typical wall time ~30s plus ~1.5s per episode page fetched.
+
+Tests: `.venv/bin/python -m unittest discover -s scripts`
 
 **Full rescrape (rebuild from scratch):**
 
@@ -78,7 +90,7 @@ Episode data is stored in `content/assets/tal-episodes.json` and loaded client-s
 .venv/bin/python generator/generate.py
 ```
 
-This walks `/archive?year=YYYY` for every year from 1995 onward and re-fetches every episode page. Takes ~30 minutes due to per-page rate-limit delays. Use it if the JSON gets out of sync, an episode's URL changes, or you want to refresh metadata. The `/archive?year=YYYY` endpoint can lag for the most recent few episodes, so a full rescrape immediately after a release may still need a follow-up `update_tal_episodes.py` run to pick them up.
+This walks `/archive?year=YYYY` for every year from 1995 onward and re-fetches every episode page. Takes ~30 minutes due to per-page rate-limit delays. Use it to refresh metadata (titles, chapters) on existing episodes; broken URLs and missing episodes are handled by `update_tal_episodes.py`. The `/archive?year=YYYY` endpoint can lag for the most recent few episodes, so a full rescrape immediately after a release may still need a follow-up `update_tal_episodes.py` run to pick them up.
 
 The `.scrape-cache/` directory is a within-run deduplication cache used by `scrape_tal_episodes.py` only; it is wiped at the start of every full scrape and is not committed.
 

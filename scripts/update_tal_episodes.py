@@ -5,27 +5,35 @@ For a normal site update, run this instead of scrape_tal_episodes.py:
 
     .venv/bin/python scripts/update_tal_episodes.py
 
-It does two things:
+Every episode is fetched by number through /episode/N, which redirects to the
+episode's current page (including renamed pages such as /220/testosterone ->
+/220/testosterone-2002) and returns 404 for a number that doesn't exist yet.
+No listing page is trusted to be complete: in 2026 testing the 2025 year page
+omitted 862, the 2026 year page omitted 881-885 and 900-902, and the /archive
+landing only shows the ~50 most recently aired episodes (reruns included).
 
-a) Validates every existing audio URL (parallel HEAD requests). The audio
-   files live on static paths that don't enforce the same per-IP rate limit
-   as the dynamic archive pages, so this can run with high concurrency.
+Steps:
 
-b) Discovers new episodes by fetching just two pages — the /archive landing
-   page (newest-first list) and the / homepage. The /archive?year=YYYY
-   endpoint is unreliable for the most recent episodes (during 2026-06
-   testing it was missing eps 887 and 888 even though they exist), so we
-   rely on the two newest-first surfaces instead. Only slugs whose episode
-   number exceeds the current max in the JSON are considered new, and only
-   those episode pages get fetched.
+1. Validate every existing audio URL (parallel HEAD requests). The audio
+   files live on static paths without the per-IP rate limit of the pages.
+2. Repair each broken URL by re-fetching /episode/N and taking its current
+   audio URL. TAL moves files over time (e.g. to /audio/upload/archive/N.mp3,
+   or to a new token under /audio/N/).
+3. Find the newest episode: the highest number on the /archive landing and
+   the / homepage, then probe /episode/N+1 upward until a 404.
+4. Fetch every episode number from 1 to the newest that the index lacks.
+5. Check that the index holds exactly episodes 1..newest, each with an audio
+   URL that returned 200 during this run.
 
-This trades completeness for speed: it will NOT pick up URL changes on
-existing episodes (use scrape_tal_episodes.py for that). It will surface
-broken existing URLs but does not auto-repair them.
+Any failure (a fetch error, a page without audio, an audio URL that doesn't
+return 200, a gap) fails the whole run: the JSON is left untouched and the
+exit status is 1. Pass --allow-failures to write the episodes that did
+succeed anyway (e.g. when TAL has genuinely pulled an episode).
 
-Typical wall time: ~30s vs ~30 minutes for the full rescrape.
+Typical wall time: ~30s plus ~1.5s per episode page fetched.
 """
 
+import argparse
 import json
 import os
 import re
@@ -36,7 +44,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scrape_tal_episodes import (
-    EPISODE_BASE,
     OUTPUT_PATH,
     EPISODE_DELAY,
     fetch_with_retry,
@@ -48,6 +55,7 @@ from scrape_tal_episodes import (
 
 ARCHIVE_LANDING_URL = "https://www.thisamericanlife.org/archive"
 HOMEPAGE_URL = "https://www.thisamericanlife.org/"
+EPISODE_BY_NUMBER_URL = "https://www.thisamericanlife.org/episode/{number}"
 
 VALIDATION_WORKERS = 10
 # Per-URL HEAD retries when a worker hits a transient rate-limit response.
@@ -56,6 +64,10 @@ HEAD_RETRY_BASE_DELAY = 10.0
 HEAD_RETRY_STATUSES = (429, 503)
 # Pause between the two discovery-landing fetches.
 DISCOVERY_DELAY = 2.0
+
+
+class EpisodeNotFound(Exception):
+    """/episode/N returned 404: no such episode (yet)."""
 
 
 def head_status_with_retry(url):
@@ -74,7 +86,6 @@ def validate_parallel(episodes):
     total = len(episodes)
     print(f"Validating {total} audio URLs with {VALIDATION_WORKERS} workers...")
     broken = []
-    completed = 0
 
     def check(ep):
         return ep, head_status_with_retry(ep["url"])
@@ -83,128 +94,218 @@ def validate_parallel(episodes):
         futures = [executor.submit(check, ep) for ep in episodes]
         for future in as_completed(futures):
             ep, status = future.result()
-            completed += 1
             if status != 200:
                 broken.append((ep, status))
                 print(f"  BROKEN ep {ep['episode']}: {ep['title']} — {status}")
 
+    broken.sort(key=lambda item: episode_number(item[0]))
     print(f"Validation: {total - len(broken)} ok, {len(broken)} broken.")
     return broken
 
 
-def discover_new_slugs(known_max):
-    print(f"Discovering new episodes (known max: ep {known_max})...")
-    all_slugs = set()
+def episode_number(record):
+    return int(record["episode"])
+
+
+def fetch_episode(number):
+    """
+    Fetches /episode/N and returns its record, with an audio URL that just
+    returned 200. Raises EpisodeNotFound on a 404 page; raises RuntimeError
+    with a reason for every other failure.
+    """
+    url = EPISODE_BY_NUMBER_URL.format(number=number)
+    try:
+        html = fetch_with_retry(url)
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            raise EpisodeNotFound(url)
+        raise RuntimeError(f"HTTP {e.code} fetching {url}")
+    except Exception as e:
+        raise RuntimeError(f"error fetching {url}: {e}")
+
+    data = extract_playlist_data(html)
+    if data is None:
+        raise RuntimeError(f"no playlist-data on {url}")
+    record = build_episode_record(data)
+    if record["episode"] != str(number):
+        raise RuntimeError(f"{url} is episode {record['episode']!r}, expected {number}")
+    if not record["url"]:
+        raise RuntimeError(f"no audio URL on {url}")
+    status = head_status_with_retry(record["url"])
+    if status != 200:
+        raise RuntimeError(f"audio URL returned {status}: {record['url']}")
+    return record
+
+
+def newest_listed_number():
+    """
+    Highest episode number linked from the /archive landing and the homepage
+    (both newest-first). Returns (number or None, errors): each page that
+    can't be read is an error, since "no new episodes" must never be the
+    result of a failed fetch.
+    """
+    numbers = []
+    errors = []
     for i, url in enumerate([ARCHIVE_LANDING_URL, HOMEPAGE_URL]):
         if i > 0:
             time.sleep(DISCOVERY_DELAY)
         print(f"  fetching {url}")
         try:
             html = fetch_with_retry(url)
-        except urllib.error.HTTPError as e:
-            print(f"    ERROR: HTTP {e.code} — skipping")
-            continue
         except Exception as e:
-            print(f"    ERROR: {e} — skipping")
+            errors.append(f"could not read {url}: {e}")
+            print(f"    FAILED: {e}")
             continue
-        slugs = extract_episode_slugs(html)
-        print(f"    {len(slugs)} numbered slugs found")
-        all_slugs.update(slugs)
-
-    new_slugs = []
-    for slug in all_slugs:
-        match = re.match(r"^/(\d+)/", slug)
-        if match and int(match.group(1)) > known_max:
-            new_slugs.append(slug)
-
-    new_slugs.sort()
-    print(f"  {len(new_slugs)} slug(s) newer than ep {known_max}: {new_slugs}")
-    return new_slugs
+        for slug in extract_episode_slugs(html):
+            match = re.match(r"^/(\d+)/", slug)
+            if match:
+                numbers.append(int(match.group(1)))
+    if not numbers:
+        errors.append("no numbered episode links on the /archive landing or the homepage")
+        return None, errors
+    return max(numbers), errors
 
 
-def fetch_new_episodes(slugs):
-    records = []
-    for i, slug in enumerate(slugs):
-        url = EPISODE_BASE + slug
-        print(f"  [{i + 1}/{len(slugs)}] {slug}")
-        if i > 0:
-            time.sleep(EPISODE_DELAY)
-        try:
-            html = fetch_with_retry(url)
-        except Exception as e:
-            print(f"    ERROR: {e}")
-            continue
-        data = extract_playlist_data(html)
-        if data is None:
-            print(f"    no audio data")
-            continue
-        record = build_episode_record(data)
-        if not record["url"]:
-            print(f"    no audio URL")
-            continue
-        records.append(record)
-        print(f"    ok — ep {record['episode']}: {record['title']}")
-    return records
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Incremental TAL episode index update.")
+    parser.add_argument(
+        "--allow-failures",
+        action="store_true",
+        help="write the episodes that succeeded even if some failed",
+    )
+    args = parser.parse_args(argv)
 
-
-def episode_sort_key(record):
-    try:
-        return int(record["episode"])
-    except ValueError:
-        return 0
-
-
-def main():
     if not os.path.exists(OUTPUT_PATH):
         print(f"ERROR: {OUTPUT_PATH} not found. Run scrape_tal_episodes.py for the initial build.")
-        sys.exit(1)
+        return 1
 
     with open(OUTPUT_PATH, encoding="utf-8") as f:
         episodes = json.load(f)
     print(f"Loaded {len(episodes)} existing episodes.\n")
+
+    by_number = {}
+    for ep in episodes:
+        by_number[episode_number(ep)] = ep
+    # Failures as (episode number or None, reason).
+    failures = []
+    repaired = []
+    added = []
+    fetch_count = 0
+
+    def fetch_paced(number):
+        nonlocal fetch_count
+        if fetch_count > 0:
+            time.sleep(EPISODE_DELAY)
+        fetch_count += 1
+        return fetch_episode(number)
 
     print("--- Step 1: Validate existing audio URLs (parallel) ---")
     t0 = time.time()
     broken = validate_parallel(episodes)
     print(f"  ({time.time() - t0:.1f}s)")
 
-    print("\n--- Step 2: Discover new episodes ---")
-    numbered = []
-    for ep in episodes:
-        if ep["episode"].isdigit():
-            numbered.append(int(ep["episode"]))
-    known_max = max(numbered) if numbered else 0
-    t0 = time.time()
-    new_slugs = discover_new_slugs(known_max)
-    print(f"  ({time.time() - t0:.1f}s)")
+    print("\n--- Step 2: Repair broken audio URLs ---")
+    if not broken:
+        print("  nothing to repair")
+    for ep, status in broken:
+        number = episode_number(ep)
+        print(f"  ep {number} ({status})")
+        try:
+            record = fetch_paced(number)
+        except (EpisodeNotFound, RuntimeError) as e:
+            failures.append((number, f"repair failed: {e}"))
+            print(f"    FAILED: {e}")
+            continue
+        by_number[number] = record
+        repaired.append(number)
+        print(f"    ok — {ep['url']}\n      -> {record['url']}")
 
-    print("\n--- Step 3: Fetch new episode pages ---")
-    t0 = time.time()
-    new_records = fetch_new_episodes(new_slugs)
-    print(f"  ({time.time() - t0:.1f}s)")
+    print("\n--- Step 3: Find the newest episode ---")
+    newest = max(by_number) if by_number else 0
+    listed, discovery_errors = newest_listed_number()
+    for error in discovery_errors:
+        failures.append((None, f"discovery failed: {error}"))
+    if listed is not None:
+        print(f"  newest listed: ep {listed}")
+        newest = max(newest, listed)
+    # Listing pages can lag behind a release; probe upward until a 404.
+    while True:
+        probe = newest + 1
+        print(f"  probing ep {probe}")
+        try:
+            record = fetch_paced(probe)
+        except EpisodeNotFound:
+            print(f"    404 — newest is ep {newest}")
+            break
+        except RuntimeError as e:
+            failures.append((probe, f"probe failed: {e}"))
+            print(f"    FAILED: {e}")
+            break
+        by_number[probe] = record
+        added.append(probe)
+        newest = probe
+        print(f"    ok — {record['title']}")
 
-    if new_records:
-        by_number = {}
-        for ep in episodes:
-            by_number[ep["episode"]] = ep
-        for record in new_records:
-            by_number[record["episode"]] = record
-        merged = list(by_number.values())
-        merged.sort(key=episode_sort_key)
+    print(f"\n--- Step 4: Fetch episodes missing from 1..{newest} ---")
+    missing = []
+    for number in range(1, newest + 1):
+        if number not in by_number:
+            missing.append(number)
+    print(f"  {len(missing)} missing: {missing}")
+    for number in missing:
+        print(f"  ep {number}")
+        try:
+            record = fetch_paced(number)
+        except (EpisodeNotFound, RuntimeError) as e:
+            failures.append((number, f"fetch failed: {e}"))
+            print(f"    FAILED: {e}")
+            continue
+        by_number[number] = record
+        added.append(number)
+        print(f"    ok — {record['title']}")
 
+    print("\n--- Step 5: Completeness check ---")
+    still_missing = []
+    for number in range(1, newest + 1):
+        if number not in by_number:
+            still_missing.append(number)
+    if still_missing:
+        failures.append((None, f"index lacks episodes {still_missing}"))
+    print(f"  index holds {len(by_number)} episodes; expected 1..{newest}; lacking {still_missing}")
+
+    merged = []
+    for number in sorted(by_number):
+        merged.append(by_number[number])
+
+    print(f"\nRepaired {len(repaired)}: {sorted(repaired)}")
+    print(f"Added {len(added)}: {sorted(added)}")
+
+    if failures:
+        print(f"\nFAILED ({len(failures)}):")
+        for number, reason in failures:
+            if number is None:
+                print(f"  {reason}")
+            else:
+                print(f"  ep {number}: {reason}")
+
+    if failures and not args.allow_failures:
+        print(f"\n{OUTPUT_PATH} NOT written. Recovery options:")
+        print("  - rerun (rate limits and network errors are often transient)")
+        print("  - open the failing /episode/N pages to see what TAL changed")
+        print("  - rerun with --allow-failures to write the episodes that succeeded")
+        return 1
+
+    if not repaired and not added:
+        print(f"\nNothing changed — {OUTPUT_PATH} unchanged.")
+    else:
         with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
             json.dump(merged, f, indent=2, ensure_ascii=False)
-        print(f"\nWrote {len(merged)} episodes to {OUTPUT_PATH} ({len(new_records)} new).")
-    else:
-        print("\nNo new episodes found — JSON unchanged.")
+        print(f"\nWrote {len(merged)} episodes to {OUTPUT_PATH}.")
 
-    if broken:
-        print(f"\nBroken audio URLs ({len(broken)}):")
-        for ep, status in broken:
-            print(f"  ep {ep['episode']} ({status}): {ep['title']}")
-            print(f"    {ep['url']}")
-        print("\nThese existed before this run. To attempt a refresh, run scrape_tal_episodes.py.")
+    if failures:
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
