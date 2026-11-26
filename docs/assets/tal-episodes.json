@@ -5426,41 +5426,21 @@
   {
     "episode": "206",
     "title": "206: Somewhere in the Arabian Sea",
-    "url": "https://www.thisamericanlife.org/sites/default/files/audio/206/vEnQyx8eK5ZhMfpgOYoCcasvEzZQYzuZjkj9zqT0Xa4/206.mp3",
-    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/206/vEnQyx8eK5ZhMfpgOYoCcasvEzZQYzuZjkj9zqT0Xa4/206.mp3",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/206.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/206.mp3",
     "stream_url": "https://stream.thisamericanlife.org/206/206_64k.m3u8",
     "chapters": [
       {
-        "name": "Prologue",
+        "name": "Prologue: Prologue",
         "timestamp": 0
       },
       {
         "name": "Act One: Act One",
-        "timestamp": 233
+        "timestamp": 232
       },
       {
         "name": "Act Two: Act Two",
-        "timestamp": 1083
-      },
-      {
-        "name": "Act Three: Act Three",
-        "timestamp": 1656
-      },
-      {
-        "name": "Act Four: Act Four",
-        "timestamp": 1959
-      },
-      {
-        "name": "Act Five: Act Five",
-        "timestamp": 2611
-      },
-      {
-        "name": "Act Six: Act Six",
-        "timestamp": 3123
-      },
-      {
-        "name": "Act Seven: Act Seven",
-        "timestamp": 3338
+        "timestamp": 1950
       }
     ]
   },
@@ -5779,30 +5759,30 @@
   },
   {
     "episode": "220",
-    "title": "220: Testosterone",
-    "url": "https://www.thisamericanlife.org/sites/default/files/audio/220/Khtix35j6Ptd4W7Bm98nL5pmaRi8XutKr2VnH4Anq1w/220.mp3",
-    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/220/Khtix35j6Ptd4W7Bm98nL5pmaRi8XutKr2VnH4Anq1w/220.mp3",
+    "title": "220: Testosterone (2002)",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/220.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/220.mp3",
     "stream_url": "https://stream.thisamericanlife.org/220/220_64k.m3u8",
     "chapters": [
       {
-        "name": "Prologue",
+        "name": "Prologue: Prologue",
         "timestamp": 0
       },
       {
         "name": "Act One: Life At Zero",
-        "timestamp": 520
+        "timestamp": 498
       },
       {
         "name": "Act Two: Infinite Gent",
-        "timestamp": 931
+        "timestamp": 911
       },
       {
         "name": "Act Three: Contest-osterone",
-        "timestamp": 1971
+        "timestamp": 1915
       },
       {
         "name": "Act Four: Learning To Shut Up",
-        "timestamp": 2742
+        "timestamp": 2676
       }
     ]
   },
@@ -9314,21 +9294,21 @@
   {
     "episode": "354",
     "title": "354: Mistakes Were Made",
-    "url": "https://www.thisamericanlife.org/sites/default/files/audio/354/YO4F76SyWiq1kS5OOCHl6fbcyUiR7wghRa9W8JFgawo/354.mp3",
-    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/354/YO4F76SyWiq1kS5OOCHl6fbcyUiR7wghRa9W8JFgawo/354.mp3",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/354.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/354.mp3",
     "stream_url": "https://stream.thisamericanlife.org/354/354_64k.m3u8",
     "chapters": [
       {
-        "name": "Prologue",
+        "name": "Prologue: Prologue",
         "timestamp": 0
       },
       {
         "name": "Act One: You’re As Cold As Ice",
-        "timestamp": 408
+        "timestamp": 440
       },
       {
         "name": "Act Two: You’re Willing To Sacrifice Our Love",
-        "timestamp": 2997
+        "timestamp": 2990
       }
     ]
   },
@@ -12801,12 +12781,12 @@
   {
     "episode": "489",
     "title": "489: No Coincidence, No Story!",
-    "url": "https://www.thisamericanlife.org/sites/default/files/audio/489/CMMUoWOxRZGvX8MTIXxyuv7UC-Talc7URQpqgCICsXY/489.mp3",
-    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/489/CMMUoWOxRZGvX8MTIXxyuv7UC-Talc7URQpqgCICsXY/489.mp3",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/489/9veEFOD8ou5ESWDLaGCo2z7k2Uwia31VydXcuH7wViI/489.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/schedule/extended/489-extended-1792170557.mp3",
     "stream_url": "https://stream.thisamericanlife.org/489/489_64k.m3u8",
     "chapters": [
       {
-        "name": "Prologue",
+        "name": "Prologue: Prologue",
         "timestamp": 0
       },
       {
@@ -12815,19 +12795,19 @@
       },
       {
         "name": "Act Two: In God We Trust",
-        "timestamp": 1107
+        "timestamp": 1111
       },
       {
         "name": "Act Three: Brother, Can You Spare a Dime",
-        "timestamp": 1695
+        "timestamp": 1702
       },
       {
         "name": "Act Four: Don't Lift the Manhole Cover",
-        "timestamp": 2191
+        "timestamp": 2199
       },
       {
         "name": "Act Five: What Are The Chances?",
-        "timestamp": 2927
+        "timestamp": 2937
       }
     ]
   },
@@ -16786,12 +16766,12 @@
   {
     "episode": "646",
     "title": "646: The Secret of My Death",
-    "url": "https://www.thisamericanlife.org/sites/default/files/audio/646/prbsjYoLGjhPiyq9t-a2LHuLEuRmSb1LghhJQo0N-60/646.mp3",
-    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/646/prbsjYoLGjhPiyq9t-a2LHuLEuRmSb1LghhJQo0N-60/646.mp3",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/646.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/646.mp3",
     "stream_url": "https://stream.thisamericanlife.org/646/646_64k.m3u8",
     "chapters": [
       {
-        "name": "Prologue",
+        "name": "Prologue: Prologue",
         "timestamp": 0
       },
       {
@@ -22919,6 +22899,372 @@
       {
         "name": "Preview",
         "timestamp": 0
+      }
+    ]
+  },
+  {
+    "episode": "889",
+    "title": "889: There’s Something About Hail Mary",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/889.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/889.mp3",
+    "stream_url": "https://stream.thisamericanlife.org/889/889_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: 12 Weeks Notice",
+        "timestamp": 590
+      },
+      {
+        "name": "Act Two: Bottle Episode",
+        "timestamp": 2889
+      }
+    ]
+  },
+  {
+    "episode": "890",
+    "title": "890: Maximal Americanness",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/890.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/890.mp3",
+    "stream_url": "https://stream.thisamericanlife.org/890/890_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: A Most American Question",
+        "timestamp": 670
+      },
+      {
+        "name": "Act Two: City on a Hill of Sand",
+        "timestamp": 1035
+      },
+      {
+        "name": "Act Three: Cooked Island",
+        "timestamp": 1573
+      },
+      {
+        "name": "Act Four: The Most American Schoolbook",
+        "timestamp": 2048
+      },
+      {
+        "name": "Act Five: Jose Can You See?",
+        "timestamp": 2547
+      }
+    ]
+  },
+  {
+    "episode": "891",
+    "title": "891: The Test Case",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/891/YgDDDAbSQFeYPwFZngGfeJNlA-Smxf-PxIXv6PSlP7A/891.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/891/YgDDDAbSQFeYPwFZngGfeJNlA-Smxf-PxIXv6PSlP7A/891.mp3",
+    "stream_url": "https://stream.thisamericanlife.org/891/891_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: Act One",
+        "timestamp": 420
+      },
+      {
+        "name": "Act Two: Act Two",
+        "timestamp": 771
+      },
+      {
+        "name": "Act Three: Act Three",
+        "timestamp": 1735
+      },
+      {
+        "name": "Act Four: Act Four",
+        "timestamp": 3317
+      }
+    ]
+  },
+  {
+    "episode": "892",
+    "title": "892: Trapped on a Bus",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/892/UdzDQI_-cSy0lHIJEx9YCg0BYiKSfOQBA6xLQ_dRNhw/892.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/892/UdzDQI_-cSy0lHIJEx9YCg0BYiKSfOQBA6xLQ_dRNhw/892.mp3",
+    "stream_url": "https://stream.thisamericanlife.org/892/892_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: The Gardener",
+        "timestamp": 491
+      },
+      {
+        "name": "Act Two: No Power To The People",
+        "timestamp": 1278
+      },
+      {
+        "name": "Act Three: Murder, Tree Wrote",
+        "timestamp": 1953
+      },
+      {
+        "name": "Act Four: In Flight Snack",
+        "timestamp": 2911
+      }
+    ]
+  },
+  {
+    "episode": "893",
+    "title": "893: Testosterone",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/893.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/893.mp3",
+    "stream_url": "https://stream.thisamericanlife.org/893/893_64k.m3u8",
+    "chapters": [
+      {
+        "name": " Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: Infinite Gent",
+        "timestamp": 585
+      },
+      {
+        "name": "Act Two: Contest-osterone",
+        "timestamp": 1616
+      },
+      {
+        "name": "Act Three: Life at Zero",
+        "timestamp": 2416
+      },
+      {
+        "name": "Act Four: Learning to Shut Up",
+        "timestamp": 2747
+      }
+    ]
+  },
+  {
+    "episode": "894",
+    "title": "894: I Couldn't Help but Notice",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/894.mp3",
+    "simplecast_url": "https://pfx.vpixl.com/6qj4J/dts.podtrac.com/redirect.mp/pdst.fm/e/prefix.up.audio/s/npr.simplecastaudio.com/d3081dd9-fcaf-445a-977c-4f56c28f5a6e/episodes/0e3cd2c7-87b9-4122-a3fd-38d95bfda0e9/audio/128/default.mp3?awCollectionId=d3081dd9-fcaf-445a-977c-4f56c28f5a6e&awEpisodeId=0e3cd2c7-87b9-4122-a3fd-38d95bfda0e9&nocache",
+    "stream_url": "https://stream.thisamericanlife.org/894/894_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: Closing Time",
+        "timestamp": 330
+      },
+      {
+        "name": "Act Two: Conversations About Important Things",
+        "timestamp": 2036
+      }
+    ]
+  },
+  {
+    "episode": "895",
+    "title": "895: Label Maker!",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/895.mp3",
+    "simplecast_url": "https://pfx.vpixl.com/6qj4J/dts.podtrac.com/redirect.mp/pdst.fm/e/prefix.up.audio/s/npr.simplecastaudio.com/d3081dd9-fcaf-445a-977c-4f56c28f5a6e/episodes/15103000-90c9-465f-8a0d-0dff5fb2f403/audio/128/default.mp3?awCollectionId=d3081dd9-fcaf-445a-977c-4f56c28f5a6e&awEpisodeId=15103000-90c9-465f-8a0d-0dff5fb2f403&nocache",
+    "stream_url": "https://stream.thisamericanlife.org/895/895_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: Last Shift",
+        "timestamp": 314
+      },
+      {
+        "name": "Act Two: Diagnose Me, Maybe?",
+        "timestamp": 1617
+      },
+      {
+        "name": "Act Three: The Last Description",
+        "timestamp": 2641
+      }
+    ]
+  },
+  {
+    "episode": "896",
+    "title": "896: I Know What You Need",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/896.mp3",
+    "simplecast_url": "https://pfx.vpixl.com/6qj4J/dts.podtrac.com/redirect.mp/pdst.fm/e/prefix.up.audio/s/npr.simplecastaudio.com/d3081dd9-fcaf-445a-977c-4f56c28f5a6e/episodes/caceec36-6b90-47bf-82f3-0913de8f51ee/audio/128/default.mp3?awCollectionId=d3081dd9-fcaf-445a-977c-4f56c28f5a6e&awEpisodeId=caceec36-6b90-47bf-82f3-0913de8f51ee&nocache",
+    "stream_url": "https://stream.thisamericanlife.org/896/896_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: Friends and Family Plan",
+        "timestamp": 721
+      },
+      {
+        "name": "Act Two: Escape Claudes",
+        "timestamp": 1957
+      },
+      {
+        "name": "Act Three: Not Throwing Away My Shot",
+        "timestamp": 3288
+      }
+    ]
+  },
+  {
+    "episode": "897",
+    "title": "897: Intergenerational Space Travel",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/897.mp3",
+    "simplecast_url": "https://pfx.vpixl.com/6qj4J/dts.podtrac.com/redirect.mp/pdst.fm/e/prefix.up.audio/s/npr.simplecastaudio.com/d3081dd9-fcaf-445a-977c-4f56c28f5a6e/episodes/05f5064e-96a9-467e-952d-a6c1fe5a06c3/audio/128/default.mp3?awCollectionId=d3081dd9-fcaf-445a-977c-4f56c28f5a6e&awEpisodeId=05f5064e-96a9-467e-952d-a6c1fe5a06c3&nocache",
+    "stream_url": "https://stream.thisamericanlife.org/897/897_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: The Wedding Zinger",
+        "timestamp": 720
+      },
+      {
+        "name": "Act Two: Cinema Veri-teen",
+        "timestamp": 2453
+      },
+      {
+        "name": "Act Three: Mama Can You Hair Me",
+        "timestamp": 3027
+      }
+    ]
+  },
+  {
+    "episode": "898",
+    "title": "898: An Argument",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/898.mp3",
+    "simplecast_url": "https://pfx.vpixl.com/6qj4J/dts.podtrac.com/redirect.mp/pdst.fm/e/prefix.up.audio/s/npr.simplecastaudio.com/d3081dd9-fcaf-445a-977c-4f56c28f5a6e/episodes/4b2969e2-cdd0-4f56-b8f1-faf5a32bc925/audio/128/default.mp3?awCollectionId=d3081dd9-fcaf-445a-977c-4f56c28f5a6e&awEpisodeId=4b2969e2-cdd0-4f56-b8f1-faf5a32bc925&nocache",
+    "stream_url": "https://stream.thisamericanlife.org/898/898_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: Nikole’s Choice",
+        "timestamp": 581
+      },
+      {
+        "name": "Act Two: Najya",
+        "timestamp": 1497
+      },
+      {
+        "name": "Act Three: Najya’s Choice",
+        "timestamp": 1840
+      },
+      {
+        "name": "Act Four: Nikole and Najya",
+        "timestamp": 2528
+      },
+      {
+        "name": "Act Five: The Evidence",
+        "timestamp": 3066
+      }
+    ]
+  },
+  {
+    "episode": "899",
+    "title": "899: Reaching Out",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/899/bxHTqfKSJiQVDC5pXrFi2btCEiMVQ42fC0SgUCXK8Z4/899.mp3",
+    "simplecast_url": "https://pfx.vpixl.com/6qj4J/dts.podtrac.com/redirect.mp/pdst.fm/e/prefix.up.audio/s/npr.simplecastaudio.com/d3081dd9-fcaf-445a-977c-4f56c28f5a6e/episodes/bf1a2e44-faf2-4928-b55c-f351ebbb8285/audio/128/default.mp3?awCollectionId=d3081dd9-fcaf-445a-977c-4f56c28f5a6e&awEpisodeId=bf1a2e44-faf2-4928-b55c-f351ebbb8285&nocache",
+    "stream_url": "https://stream.thisamericanlife.org/899/899_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Part One: Part One",
+        "timestamp": 99
+      },
+      {
+        "name": "Part Two: Part Two",
+        "timestamp": 1249
+      },
+      {
+        "name": "Part Three: Part Three",
+        "timestamp": 2030
+      }
+    ]
+  },
+  {
+    "episode": "900",
+    "title": "900: Talk Me Into It",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/900.mp3",
+    "simplecast_url": "https://pfx.vpixl.com/6qj4J/dts.podtrac.com/redirect.mp/pdst.fm/e/prefix.up.audio/s/npr.simplecastaudio.com/d3081dd9-fcaf-445a-977c-4f56c28f5a6e/episodes/5a109dc6-3f88-4918-b8f5-4d181a8639fd/audio/128/default.mp3?awCollectionId=d3081dd9-fcaf-445a-977c-4f56c28f5a6e&awEpisodeId=5a109dc6-3f88-4918-b8f5-4d181a8639fd&nocache",
+    "stream_url": "https://stream.thisamericanlife.org/900/900_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: Where’s the Party?",
+        "timestamp": 450
+      },
+      {
+        "name": "Act Two: The Ben Franklin Close",
+        "timestamp": 2134
+      },
+      {
+        "name": "Act Three: Polls Schmolls",
+        "timestamp": 2664
+      }
+    ]
+  },
+  {
+    "episode": "901",
+    "title": "901: Is Your Blue My Blue?",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/901.mp3",
+    "simplecast_url": "https://pfx.vpixl.com/6qj4J/dts.podtrac.com/redirect.mp/pdst.fm/e/prefix.up.audio/s/npr.simplecastaudio.com/d3081dd9-fcaf-445a-977c-4f56c28f5a6e/episodes/495d4996-9361-47bf-89f5-3fb3e6ce33b7/audio/128/default.mp3?awCollectionId=d3081dd9-fcaf-445a-977c-4f56c28f5a6e&awEpisodeId=495d4996-9361-47bf-89f5-3fb3e6ce33b7&nocache",
+    "stream_url": "https://stream.thisamericanlife.org/901/901_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: Even Though You Know You Shouldn’t",
+        "timestamp": 206
+      },
+      {
+        "name": "Act Two: Everybody Hurts",
+        "timestamp": 1910
+      },
+      {
+        "name": "Act Three: I’m Blue Da Ba Dee My Mom Died",
+        "timestamp": 2735
+      }
+    ]
+  },
+  {
+    "episode": "902",
+    "title": "902: The Missing Minutes",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/902.mp3",
+    "simplecast_url": "https://pfx.vpixl.com/6qj4J/dts.podtrac.com/redirect.mp/pdst.fm/e/prefix.up.audio/s/npr.simplecastaudio.com/d3081dd9-fcaf-445a-977c-4f56c28f5a6e/episodes/86cdb257-086f-434a-b0a1-2e41f02fb2f5/audio/128/default.mp3?awCollectionId=d3081dd9-fcaf-445a-977c-4f56c28f5a6e&awEpisodeId=86cdb257-086f-434a-b0a1-2e41f02fb2f5&nocache",
+    "stream_url": "https://stream.thisamericanlife.org/902/902_64k.m3u8",
+    "chapters": [
+      {
+        "name": "Prologue: Prologue",
+        "timestamp": 0
+      },
+      {
+        "name": "Act One: Known Unknowns",
+        "timestamp": 238
+      },
+      {
+        "name": "Act Two: Unknown Unknowns",
+        "timestamp": 2848
       }
     ]
   }
