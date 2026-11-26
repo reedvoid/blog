@@ -25,6 +25,7 @@ scripts/
   scrape_tal_episodes.py # shared fetch/parse helpers; running it = update --refresh-all
   update_tal_episodes.py # builds, refreshes and repairs tal-episodes.json
   test_update_tal_episodes.py
+  test_tal_player.mjs    # tests the player's saved-queue restore (node --test)
 docs/                    # generated output — GitHub Pages source
 ```
 
@@ -62,7 +63,9 @@ A shuffle player for This American Life archival episodes, served at `/tal-playe
 
 Episode data is stored in `content/assets/tal-episodes.json` and loaded client-side at runtime. The page itself is generated directly from `generator/templates/tal_player.html` with no `.md` source file.
 
-**Queue persistence** — the playback queue (up to 100 episodes) and current position are saved to `localStorage['tal-queue']` after every navigation. On page load the queue is restored and the current episode is shown paused at the beginning. This survives mobile browser tab discards (e.g. iOS backgrounding the tab for long enough that the OS kills the process).
+**Queue persistence** — the playback queue (up to 100 episodes) and current position are saved to `localStorage['tal-queue']` after every navigation. On page load the queue is restored and the current episode is shown paused, at its saved position. This survives mobile browser tab discards (e.g. iOS backgrounding the tab for long enough that the OS kills the process).
+
+The saved queue is rebuilt from the freshly loaded episode list on every page load, matching entries by episode number: queued episodes pick up repaired URLs, titles and chapters, and episodes no longer in the list (e.g. excluded ones) are dropped. If the current episode was dropped, the next queued one becomes current. The saved position is kept only if the current episode's audio URL is unchanged, since a new URL may be a different cut of the episode. Tests: `node --test scripts/test_tal_player.mjs`
 
 **To update the episode list (normal case):**
 

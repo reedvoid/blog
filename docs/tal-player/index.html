@@ -238,16 +238,62 @@
     var restoredPosition = 0;
     var lastSaveSecond = -1;
 
-    function saveState() {
+    function writeState(position) {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({
                 queue: queue,
                 queueIndex: queueIndex,
-                position: audio.currentTime
+                position: position
             }));
         } catch (e) {}
     }
 
+    function saveState() {
+        writeState(audio.currentTime);
+    }
+
+    // Rebuild a saved queue from the current episode list, matching entries
+    // by episode number, so a restored queue picks up repaired URLs, titles
+    // and chapters, and drops episodes the list no longer has. If the current
+    // episode was dropped, the next kept one becomes current (or the last
+    // kept one, if none follows). currentUnchanged is true only when the
+    // current episode survived with the same audio URL, i.e. a saved playback
+    // position still points into the same file. Returns null if no entry
+    // survives.
+    function refreshSavedQueue(savedQueue, savedIndex, episodeList) {
+        var byNumber = {};
+        for (var i = 0; i < episodeList.length; i++) {
+            byNumber[episodeList[i].episode] = episodeList[i];
+        }
+        var fresh = [];
+        var freshIndex = -1;
+        var currentUnchanged = false;
+        for (var j = 0; j < savedQueue.length; j++) {
+            var saved = savedQueue[j];
+            var match = null;
+            if (saved && Object.prototype.hasOwnProperty.call(byNumber, saved.episode)) {
+                match = byNumber[saved.episode];
+            }
+            if (j === savedIndex) {
+                freshIndex = fresh.length;
+                if (match && match.url === saved.url) {
+                    currentUnchanged = true;
+                }
+            }
+            if (match) {
+                fresh.push(match);
+            }
+        }
+        if (fresh.length === 0) {
+            return null;
+        }
+        if (freshIndex < 0 || freshIndex >= fresh.length) {
+            freshIndex = fresh.length - 1;
+        }
+        return { queue: fresh, queueIndex: freshIndex, currentUnchanged: currentUnchanged };
+    }
+
+    // Must run after `episodes` is loaded: the saved queue is rebuilt from it.
     function loadState() {
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
@@ -261,9 +307,18 @@
             if (typeof saved.queueIndex !== 'number') {
                 return false;
             }
-            queue = saved.queue;
-            queueIndex = Math.min(saved.queueIndex, queue.length - 1);
-            restoredPosition = (typeof saved.position === 'number' && saved.position > 0) ? saved.position : 0;
+            var savedIndex = Math.min(saved.queueIndex, saved.queue.length - 1);
+            var refreshed = refreshSavedQueue(saved.queue, savedIndex, episodes);
+            if (!refreshed) {
+                return false;
+            }
+            queue = refreshed.queue;
+            queueIndex = refreshed.queueIndex;
+            restoredPosition = 0;
+            if (refreshed.currentUnchanged && typeof saved.position === 'number' && saved.position > 0) {
+                restoredPosition = saved.position;
+            }
+            writeState(restoredPosition);
             return true;
         } catch (e) {
             return false;
