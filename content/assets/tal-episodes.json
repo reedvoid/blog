@@ -11896,19 +11896,6 @@
     ]
   },
   {
-    "episode": "454",
-    "title": "454: Mr. Daisey and the Apple Factory",
-    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/promos/454.mp3",
-    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/promos/454.mp3",
-    "stream_url": "",
-    "chapters": [
-      {
-        "name": "Preview",
-        "timestamp": 0
-      }
-    ]
-  },
-  {
     "episode": "455",
     "title": "455: Continental Breakup",
     "url": "https://www.thisamericanlife.org/sites/default/files/audio/455/IVQGzPWL7ZBBLxf3jiqpW9Z23kATA2WTXZIthhqqR6k/455.mp3",
@@ -22892,13 +22879,25 @@
   {
     "episode": "888",
     "title": "888: Not Today, Hades!",
-    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/promos/888.mp3",
-    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/promos/888.mp3",
-    "stream_url": "",
+    "url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/888.mp3",
+    "simplecast_url": "https://www.thisamericanlife.org/sites/default/files/audio/upload/archive/888.mp3",
+    "stream_url": "https://stream.thisamericanlife.org/888/888_64k.m3u8",
     "chapters": [
       {
-        "name": "Preview",
+        "name": "Prologue: Prologue",
         "timestamp": 0
+      },
+      {
+        "name": "Act One: Icarus",
+        "timestamp": 227
+      },
+      {
+        "name": "Act Two: Cerberus",
+        "timestamp": 1109
+      },
+      {
+        "name": "Act Three: Zeus",
+        "timestamp": 2595
       }
     ]
   },
