@@ -1,9 +1,14 @@
 """
 Incremental TAL episode index update.
 
-For a normal site update, run this instead of scrape_tal_episodes.py:
+For a normal site update:
 
     .venv/bin/python scripts/update_tal_episodes.py
+
+To re-fetch every episode (refresh titles and chapters, or build the index
+from scratch; ~25 minutes at 1.5s per page):
+
+    .venv/bin/python scripts/update_tal_episodes.py --refresh-all
 
 Every episode is fetched by number through /episode/N, which redirects to the
 episode's current page (including renamed pages such as /220/testosterone ->
@@ -24,7 +29,8 @@ Steps:
    or to a new token under /audio/N/).
 3. Find the newest episode: the highest number on the /archive landing and
    the / homepage, then probe /episode/N+1 upward until a 404.
-4. Fetch every episode number from 1 to the newest that the index lacks.
+4. Fetch every episode number from 1 to the newest that the index lacks
+   (with --refresh-all: every episode number, skipping steps 1 and 2).
 5. Check that the index holds exactly episodes 1..newest minus
    EXCLUDED_EPISODES, each with an audio URL that passed the check above
    during this run.
@@ -35,7 +41,8 @@ with its reason. They are dropped from the index and never fetched.
 Any failure (a fetch error, a page without full audio, a gap) fails the
 whole run: the JSON is left untouched and the
 exit status is 1. Pass --allow-failures to write the episodes that did
-succeed anyway (e.g. when TAL has genuinely pulled an episode).
+succeed anyway (e.g. when TAL has genuinely pulled an episode). The JSON is
+written to a temp file and renamed into place, so a crash can't truncate it.
 
 Typical wall time: ~30s plus ~1.5s per episode page fetched.
 """
@@ -218,6 +225,22 @@ def newest_listed_number():
     return max(numbers), errors
 
 
+def write_index(records):
+    """
+    Writes to a temp file beside OUTPUT_PATH, then renames it over the
+    original, so a crash mid-write leaves the old index intact.
+    """
+    tmp_path = OUTPUT_PATH + ".tmp"
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(records, f, indent=2, ensure_ascii=False)
+        os.replace(tmp_path, OUTPUT_PATH)
+    except BaseException:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        raise
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Incremental TAL episode index update.")
     parser.add_argument(
@@ -225,14 +248,21 @@ def main(argv=None):
         action="store_true",
         help="write the episodes that succeeded even if some failed",
     )
+    parser.add_argument(
+        "--refresh-all",
+        action="store_true",
+        help="re-fetch every episode (titles, chapters, URLs); also builds the index from scratch",
+    )
     args = parser.parse_args(argv)
 
-    if not os.path.exists(OUTPUT_PATH):
-        print(f"ERROR: {OUTPUT_PATH} not found. Run scrape_tal_episodes.py for the initial build.")
+    if os.path.exists(OUTPUT_PATH):
+        with open(OUTPUT_PATH, encoding="utf-8") as f:
+            episodes = json.load(f)
+    elif args.refresh_all:
+        episodes = []
+    else:
+        print(f"ERROR: {OUTPUT_PATH} not found. Run with --refresh-all to build it.")
         return 1
-
-    with open(OUTPUT_PATH, encoding="utf-8") as f:
-        episodes = json.load(f)
     print(f"Loaded {len(episodes)} existing episodes.\n")
 
     by_number = {}
@@ -249,6 +279,7 @@ def main(argv=None):
     failures = []
     repaired = []
     added = []
+    refreshed = []
     fetch_count = 0
 
     def fetch_paced(number):
@@ -259,9 +290,14 @@ def main(argv=None):
         return fetch_episode(number)
 
     print("--- Step 1: Validate existing audio URLs (parallel) ---")
-    t0 = time.time()
-    broken = validate_parallel(list(by_number.values()))
-    print(f"  ({time.time() - t0:.1f}s)")
+    if args.refresh_all:
+        # Every episode is re-fetched and its audio checked in step 4.
+        print("  skipped (--refresh-all)")
+        broken = []
+    else:
+        t0 = time.time()
+        broken = validate_parallel(list(by_number.values()))
+        print(f"  ({time.time() - t0:.1f}s)")
 
     print("\n--- Step 2: Repair broken audio URLs ---")
     if not broken:
@@ -305,12 +341,21 @@ def main(argv=None):
         newest = probe
         print(f"    ok — {record['title']}")
 
-    print(f"\n--- Step 4: Fetch episodes missing from 1..{newest} ---")
     missing = []
     for number in range(1, newest + 1):
-        if number not in by_number and number not in EXCLUDED_EPISODES:
+        if number in EXCLUDED_EPISODES:
+            continue
+        # Probed episodes were fetched moments ago in step 3.
+        if args.refresh_all and number not in added:
             missing.append(number)
-    print(f"  {len(missing)} missing: {missing}")
+        elif number not in by_number:
+            missing.append(number)
+    if args.refresh_all:
+        print(f"\n--- Step 4: Re-fetch every episode 1..{newest} ---")
+        print(f"  {len(missing)} to fetch")
+    else:
+        print(f"\n--- Step 4: Fetch episodes missing from 1..{newest} ---")
+        print(f"  {len(missing)} missing: {missing}")
     for number in missing:
         print(f"  ep {number}")
         try:
@@ -319,8 +364,11 @@ def main(argv=None):
             failures.append((number, f"fetch failed: {e}"))
             print(f"    FAILED: {e}")
             continue
+        if number in by_number:
+            refreshed.append(number)
+        else:
+            added.append(number)
         by_number[number] = record
-        added.append(number)
         print(f"    ok — {record['title']}")
 
     print("\n--- Step 5: Completeness check ---")
@@ -339,6 +387,8 @@ def main(argv=None):
 
     print(f"\nRepaired {len(repaired)}: {sorted(repaired)}")
     print(f"Added {len(added)}: {sorted(added)}")
+    if args.refresh_all:
+        print(f"Re-fetched {len(refreshed)} existing episodes")
     print(f"Removed (excluded) {len(removed)}: {removed}")
 
     if failures:
@@ -356,11 +406,10 @@ def main(argv=None):
         print("  - rerun with --allow-failures to write the episodes that succeeded")
         return 1
 
-    if not repaired and not added and not removed:
+    if merged == episodes:
         print(f"\nNothing changed — {OUTPUT_PATH} unchanged.")
     else:
-        with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
-            json.dump(merged, f, indent=2, ensure_ascii=False)
+        write_index(merged)
         print(f"\nWrote {len(merged)} episodes to {OUTPUT_PATH}.")
 
     if failures:

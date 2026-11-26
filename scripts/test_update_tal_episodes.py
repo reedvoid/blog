@@ -447,6 +447,115 @@ class UpdateTest(unittest.TestCase):
         self.assertIn(454, EXCLUDED_REAL)
         self.assertIn("retracted", EXCLUDED_REAL[454])
 
+    # --- --refresh-all ---
+
+    def test_refresh_all_refetches_every_episode(self):
+        stale = record(1, "old")
+        stale["title"] = "1: Stale Title"
+        self.write_index([stale, record(2, "old")])
+        site = FakeTAL(listed=[2], pages={1: playlist(1), 2: playlist(2)},
+                       live_audio=[audio_url(1), audio_url(2)])
+        code, out = self.run_update(site, ["--refresh-all"])
+        self.assertEqual(code, 0, out)
+        index = self.read_index()
+        self.assertEqual(index[0]["title"], "1: Title")
+        self.assertEqual([r["url"] for r in index], [audio_url(1), audio_url(2)])
+        self.assertEqual(index[0]["chapters"], [{"name": "Prologue", "timestamp": 0}])
+        # Stored URLs aren't validated; each page is fetched exactly once.
+        self.assertNotIn("BROKEN", out)
+        self.assertEqual(sorted(site.episode_fetches()), [1, 2, 3])
+
+    def test_refresh_all_fetches_probed_episode_once(self):
+        self.write_index([record(1)])
+        site = FakeTAL(listed=[1], pages={1: playlist(1), 2: playlist(2)},
+                       live_audio=[audio_url(1), audio_url(2)])
+        code, out = self.run_update(site, ["--refresh-all"])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(sorted(site.episode_fetches()), [1, 2, 3])
+        self.assertEqual([r["episode"] for r in self.read_index()], ["1", "2"])
+
+    def test_refresh_all_builds_missing_index(self):
+        site = FakeTAL(listed=[2], pages={1: playlist(1), 2: playlist(2)},
+                       live_audio=[audio_url(1), audio_url(2)])
+        code, out = self.run_update(site, ["--refresh-all"])
+        self.assertEqual(code, 0, out)
+        self.assertEqual([r["episode"] for r in self.read_index()], ["1", "2"])
+
+    def test_missing_index_without_refresh_all_fails(self):
+        site = FakeTAL(listed=[1], pages={}, live_audio=[])
+        code, out = self.run_update(site)
+        self.assertEqual(code, 1, out)
+        self.assertIn("Run with --refresh-all to build it", out)
+        self.assertFalse(os.path.exists(self.path))
+        self.assertEqual(site.fetched, [])
+
+    def test_refresh_all_no_change_leaves_file_byte_identical(self):
+        self.write_index([record(1)])
+        site = FakeTAL(listed=[1], pages={1: playlist(1)}, live_audio=[audio_url(1)])
+        self.assertEqual(self.run_update(site, ["--refresh-all"])[0], 0)
+        before = self.index_bytes()
+        code, out = self.run_update(site, ["--refresh-all"])
+        self.assertEqual(code, 0, out)
+        self.assertIn("Nothing changed", out)
+        self.assertEqual(self.index_bytes(), before)
+
+    def test_refresh_all_skips_excluded(self):
+        self.exclude([2])
+        self.write_index([record(1), record(2), record(3)])
+        site = FakeTAL(listed=[3], pages={1: playlist(1), 2: playlist(2), 3: playlist(3)},
+                       live_audio=[audio_url(1), audio_url(2), audio_url(3)])
+        code, out = self.run_update(site, ["--refresh-all"])
+        self.assertEqual(code, 0, out)
+        self.assertNotIn(2, site.episode_fetches())
+        self.assertEqual([r["episode"] for r in self.read_index()], ["1", "3"])
+
+    def test_refresh_all_failure_writes_nothing(self):
+        before = self.write_index([record(1), record(2)])
+        site = FakeTAL(listed=[2], pages={1: playlist(1), 2: 500}, live_audio=[audio_url(1)])
+        code, out = self.run_update(site, ["--refresh-all"])
+        self.assert_failed_untouched(before, code, out)
+        self.assertIn("ep 2: fetch failed: HTTP 500", out)
+
+    def test_refresh_all_allow_failures_keeps_old_record(self):
+        self.write_index([record(1), record(2)])
+        site = FakeTAL(listed=[2], pages={1: playlist(1), 2: 500}, live_audio=[audio_url(1)])
+        code, out = self.run_update(site, ["--refresh-all", "--allow-failures"])
+        self.assertEqual(code, 1, out)
+        index = self.read_index()
+        self.assertEqual(index[0]["url"], audio_url(1))
+        self.assertEqual(index[1], record(2))
+
+    # --- atomic write ---
+
+    def test_crash_mid_write_leaves_index_intact(self):
+        before = self.write_index([record(1)])
+        site = FakeTAL(listed=[2], pages={2: playlist(2)}, live_audio=[audio_url(1, "old"), audio_url(2)])
+
+        def partial_dump(obj, f, **kwargs):
+            f.write('[{"episode": "1"')
+            raise OSError("disk full")
+
+        with mock.patch("update_tal_episodes.json.dump", partial_dump):
+            with self.assertRaises(OSError):
+                self.run_update(site)
+        self.assertEqual(self.index_bytes(), before)
+        self.assertEqual(os.listdir(self.tmp.name), ["tal-episodes.json"])
+
+    # --- scrape_tal_episodes.py entry point ---
+
+    def test_scrape_entry_point_runs_refresh_all(self):
+        import scrape_tal_episodes
+        calls = []
+
+        def fake_main(argv):
+            calls.append(argv)
+            return 7
+
+        with mock.patch("update_tal_episodes.main", fake_main), \
+                mock.patch("sys.argv", ["scrape_tal_episodes.py", "--allow-failures"]):
+            self.assertEqual(scrape_tal_episodes.main(), 7)
+        self.assertEqual(calls, [["--refresh-all", "--allow-failures"]])
+
     # --- --allow-failures ---
 
     def test_allow_failures_writes_successes_and_still_exits_1(self):
